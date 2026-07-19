@@ -52,6 +52,24 @@ export interface CoCo {
   metPlayer: boolean;
 }
 
+// Sprocket — Fen Sollene's first successful creation, slowly decaying.
+// Reuses the same character rig as NPCs/player (drawCharacter) but with a
+// distinct outfit palette and a per-frame decay flicker (alpha jitter +
+// pixel glitch offset). Idle: gentle body bob. Walk: paces between two
+// waypoints. Talk: emote bubble. Decay idle: flicker/glitch overlay.
+export interface Sprocket {
+  x: number; y: number;
+  from: number; to: number;
+  t: number;
+  facing: number;
+  walk: number;
+  paused: boolean;
+  pauseT: number;
+  talk: boolean;
+  talkT: number;
+  decayPh: number;
+}
+
 export interface UndergroundState {
   shaftX: number;         // where the daylight lands (also where player wakes)
   shaftY: number;
@@ -65,6 +83,7 @@ export interface UndergroundState {
   pebbles: Pebble[];
   clock: { x: number; y: number };
   coco: CoCo;
+  sprocket: Sprocket;
   bounds: { w: number; h: number };
   playerStart: { x: number; y: number };
   // parallax dust motes drifting through the shaft
@@ -144,11 +163,29 @@ export function buildUnderground(): UndergroundState {
     metPlayer: false,
   };
 
+  // Sprocket paces between two points near the shaft — close enough to be
+  // noticed on arrival, but not blocking the portal.
+  const sprocket: Sprocket = {
+    x: shaftX - 220,
+    y: groundY - 20,
+    from: shaftX - 280,
+    to: shaftX - 140,
+    t: 0,
+    facing: 1,
+    walk: 0,
+    paused: true,
+    pauseT: 1.5,
+    talk: false,
+    talkT: 0,
+    decayPh: 0,
+  };
+
   return {
     shaftX, shaftY, groundY,
     bgRocks, fgRocks, roots, crystals, mushrooms, moss, pebbles,
     clock: { x: shaftX + 480, y: groundY - 40 },
     coco,
+    sprocket,
     bounds: { w: UG_W, h: UG_H },
     playerStart: { x: shaftX, y: groundY - 20 },
     motes,
@@ -171,6 +208,38 @@ export function updateUnderground(ctx: Ctx) {
   for (const m of u.motes) {
     m.y -= dt * 8;
     if (m.y < 40) { m.y = u.groundY - 20; m.x = u.shaftX + rand(-90, 90); }
+  }
+
+  // Sprocket update — pace + talk when player is close.
+  const s = u.sprocket;
+  s.decayPh += dt;
+  if (s.paused) {
+    s.pauseT -= dt;
+    if (s.pauseT <= 0) {
+      s.paused = false;
+      s.t = 0;
+      // swap direction
+      const tmp = s.from; s.from = s.to; s.to = tmp;
+      s.facing = s.to > s.from ? 1 : -1;
+    }
+  } else {
+    s.t += dt * 0.35;
+    if (s.t >= 1) {
+      s.t = 1;
+      s.paused = true;
+      s.pauseT = rand(1.5, 3);
+    }
+    s.x = lerp(s.from, s.to, s.t);
+    s.walk += dt * 5;
+  }
+  // Talk when player nearby
+  const dp = Math.hypot(p.x - s.x, p.y - s.y);
+  if (dp < 120) {
+    s.talk = true; s.talkT = 1.2;
+    s.facing = p.x > s.x ? 1 : -1;
+  } else if (s.talkT > 0) {
+    s.talkT -= dt;
+    if (s.talkT <= 0) s.talk = false;
   }
 }
 
@@ -355,8 +424,123 @@ export function drawUnderground(ctx: Ctx, g: CanvasRenderingContext2D, layer: "s
     // CoCo — a small firefly companion with warm halo
     drawCoCo(g, u.coco.x, u.coco.y, t);
 
+    // Sprocket — Fen Sollene's decaying creation, pacing near the shaft
+    drawSprocket(g, u.sprocket, t);
+
     // Portal doorway on the right — leads to the Garden of Forgotten Numbers
     drawPortal(g, u.bounds.w - 100, u.groundY - 20, t);
+  }
+}
+
+// Sprocket's little rig — small, boxy, held together by visible seams.
+// He decays: every few seconds a patch of him glitches (offset RGB-split
+// rectangles + a flicker in alpha) as if his form is losing cohesion.
+const SPROCKET_LINES = [
+  "...still here...",
+  "pieces keep... slipping...",
+  "do you remember me?",
+  "Fen said I'd last longer...",
+  "the light helps. a little.",
+];
+let _sprocketLineIdx = 0;
+let _sprocketLine = SPROCKET_LINES[0];
+let _sprocketLastTalk = false;
+
+function drawSprocket(g: CanvasRenderingContext2D, s: Sprocket, t: number) {
+  const fx = s.facing >= 0 ? 1 : -1;
+  const bobY = s.paused ? Math.sin(t * 2.2) * 1.4 : Math.abs(Math.sin(s.walk)) * 1.6;
+  const legSwing = s.paused ? 0 : Math.sin(s.walk) * 3;
+
+  // decay glitch — occasional glitch burst, otherwise mostly stable
+  const glitchWave = Math.sin(s.decayPh * 0.7) * 0.5 + 0.5;
+  const glitching = glitchWave > 0.86;
+  const flicker = glitching ? 0.55 + Math.sin(s.decayPh * 40) * 0.25 : 1;
+  const jitterX = glitching ? (Math.sin(s.decayPh * 53) * 2.2) : 0;
+
+  g.save();
+  g.globalAlpha = flicker;
+
+  // shadow
+  g.fillStyle = "rgba(0,0,0,0.4)";
+  g.beginPath(); g.ellipse(s.x + 2, s.y + 13, 12, 4.5, 0, 0, Math.PI * 2); g.fill();
+
+  g.translate(s.x + jitterX, s.y - bobY);
+  g.scale(1.3 * fx, 1.3);
+
+  // legs — thin, mechanical-looking
+  g.fillStyle = "#3a3448";
+  g.fillRect(-4, 6, 3, 10 - legSwing);
+  g.fillRect(1, 6, 3, 10 + legSwing);
+  g.fillStyle = "#1a1622";
+  g.fillRect(-5, 15 - legSwing, 4, 2.5);
+  g.fillRect(1, 15 + legSwing, 4, 2.5);
+
+  // body — patchwork box, visible stitched seams
+  g.fillStyle = "#565070";
+  g.fillRect(-7, -8, 14, 14);
+  g.fillStyle = "rgba(0,0,0,0.25)";
+  g.fillRect(-7, -8, 7, 14);
+  g.strokeStyle = "#2a2438";
+  g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(-7, -2); g.lineTo(7, -2);
+  g.moveTo(-2, -8); g.lineTo(-2, 6);
+  g.stroke();
+  // a small glowing core (like a heart/battery) visible through a seam gap
+  const coreGlow = 0.5 + Math.sin(t * 2.4) * 0.3;
+  g.fillStyle = `rgba(255,180,120,${coreGlow})`;
+  g.beginPath(); g.arc(2, -1, 2.2, 0, Math.PI * 2); g.fill();
+
+  // decay patches — small missing/glitched rectangles that drift over time
+  if (glitching) {
+    g.fillStyle = "rgba(120,220,255,0.55)";
+    g.fillRect(-6 + Math.sin(s.decayPh * 11) * 3, -6, 4, 3);
+    g.fillStyle = "rgba(255,90,140,0.45)";
+    g.fillRect(2, 2 + Math.cos(s.decayPh * 9) * 2, 4, 3);
+  }
+
+  // head — small, round, single glowing eye-slit
+  const hy = -14;
+  g.fillStyle = "#4a4460";
+  g.beginPath(); g.arc(0, hy, 6, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(0,0,0,0.2)";
+  g.beginPath(); g.arc(-2, hy, 4, Math.PI * 0.4, Math.PI * 1.6); g.fill();
+  // eye-slit — glowing, blinks slowly
+  const blink = Math.sin(t * 0.9) > 0.96 ? 0.15 : 1;
+  g.fillStyle = `rgba(180,235,255,${0.9 * blink})`;
+  g.fillRect(-3, hy - 1, 6, 1.6 * blink + 0.2);
+  // small antenna
+  g.strokeStyle = "#2a2438"; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, hy - 6); g.lineTo(0, hy - 10); g.stroke();
+  g.fillStyle = `rgba(255,200,140,${coreGlow})`;
+  g.beginPath(); g.arc(0, hy - 10, 1.4, 0, Math.PI * 2); g.fill();
+
+  g.restore();
+
+  // talk bubble
+  if (s.talk) {
+    if (!_sprocketLastTalk) {
+      _sprocketLine = SPROCKET_LINES[_sprocketLineIdx % SPROCKET_LINES.length];
+      _sprocketLineIdx++;
+    }
+    _sprocketLastTalk = true;
+    g.save();
+    const bw = Math.max(56, _sprocketLine.length * 4.6);
+    const bx = s.x, by = s.y - 46 - bobY;
+    g.fillStyle = "rgba(20,14,30,0.82)";
+    g.strokeStyle = "rgba(150,220,255,0.6)";
+    g.lineWidth = 1;
+    g.beginPath();
+    const rx = bw / 2, ry = 9;
+    g.ellipse(bx, by, rx, ry, 0, 0, Math.PI * 2);
+    g.fill(); g.stroke();
+    g.fillStyle = "#cdeeff";
+    g.font = "8px 'Iowan Old Style', Palatino, Georgia, serif";
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(_sprocketLine, bx, by + 1);
+    g.restore();
+  } else {
+    _sprocketLastTalk = false;
   }
 }
 
