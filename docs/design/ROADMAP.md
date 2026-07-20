@@ -24,12 +24,35 @@ incrementally instead of pretending the whole thing exists already.
   removed a hard zoom-snap on entering the Garden that caused a visible
   jump-cut.
 
-## Not yet implemented (still just the bible)
+## Sprite rebuild progress (in response to "rebuild all the sprites")
 
-Everything else: CoCo as an actual companion character (currently she's
-a simple firefly light, not the 8-stage Title system from the companion
-Character Design Bible), the other 7 ensemble cast members, Fen Solenne,
-the Archivist fight, Time Weave and other named abilities, the six full
+- **Character rig** (player/NPCs/runner): rebuilt with gradient-shaded
+  capsule limbs and a bezier torso/head silhouette instead of flat
+  rectangles.
+- **Trees**: rebuilt as a layered round painterly canopy instead of flat
+  triangular pine shapes.
+- **CoCo**: was a generic firefly blob that didn't match her actual design
+  bible at all. Rebuilt as her canon **Novice** stage — small, rounded,
+  twin-tails, golden-blonde hair, pale dusty-pink/cream/white, no gold
+  trim yet (gold is earned starting at Explorer per the bible). Her
+  8-stage growth system itself is not implemented — she's permanently
+  Novice for now.
+- **The hatch**: fixed a real continuity bug — it rendered as a wooden
+  hatch with plank lines, but the story explicitly calls it ancient
+  stone ("Stone. Older than the school," "wet stone" in the dangle
+  sequence). Rebuilt as a mossy, carved stone slab with a wet-stone
+  specular highlight and a faint golden crack of light, consistent with
+  the broken-rim design already used in `entities.ts`'s dangle pose.
+
+### Still using placeholder/older-style sprites
+Hedges and bushes (already blob/gradient-based, left alone — lower
+priority than the hard rebuilds above), lamp/sign/bench/tower props,
+Sprocket, Bram, and all Garden/Hearth/Primer scene dressing (flowers,
+gate, mushrooms, crystals, rocks, pages).
+
+Everything else: CoCo's full 8-stage Title progression (she's fixed at
+Novice for now), the other 7 ensemble cast members, Fen Solenne, the
+Archivist fight, Time Weave and other named abilities, the six full
 regions, Memory Echoes, the save/lantern system, endings, and the hidden
 attentiveness tracker.
 
@@ -37,10 +60,9 @@ attentiveness tracker.
 
 Given the gap in scope, the next-highest-value additions (in rough
 priority order, each independently shippable):
-1. **CoCo as a real companion** — give her a simple sprite (reusing the
-   existing `drawCharacter` rig with her palette from the Character
-   Design Bible) and have her walk beside the player in Hearth Hollow +
-   Primer, with a couple of personality-driven idle lines.
+1. **CoCo's first Title change (Novice → Explorer)** tied to a story
+   beat — this is where gold trim first appears per the bible, a good
+   test of whether the stage-swap system is worth building generally.
 2. **One more ensemble character** — Nib or Half-Page are the cheapest to
    build (bible describes simple, contained quests for both).
 3. **A lantern save point** in Hearth Hollow — even a fake/local one

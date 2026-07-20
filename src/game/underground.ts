@@ -643,28 +643,107 @@ function drawBrokenClock(g: CanvasRenderingContext2D, x: number, y: number, t: n
   g.restore();
 }
 
+// CoCo — Novice stage, per the Character Design Bible: small, rounded,
+// unadorned silhouette; twin-tails read as two small triangles; no cape
+// volume; palette is pale dusty pink / cream / soft white with NO gold
+// yet (gold is earned at later Titles, starting at Explorer). Hair is
+// always golden blonde regardless of stage — that never changes.
+// She still carries a soft ambient glow (companion-in-the-dark reads
+// better lit), but it's a cool, ungilded white-cream, not gold, to
+// respect "no gold yet."
+const COCO_HAIR = "#f0d27a";
+const COCO_BLOUSE = "#fbeee0";
+const COCO_ACCENT = "#f0a8bb"; // dusty pink
+
 function drawCoCo(g: CanvasRenderingContext2D, x: number, y: number, t: number) {
   const pulse = 0.7 + Math.sin(t * 3) * 0.25;
-  // outer halo
-  g.fillStyle = `rgba(255,220,150,${0.12 * pulse})`;
+  const bob = Math.sin(t * 1.6) * 2;
+
+  // soft ambient glow — white/cream, not gold (Novice hasn't earned gold yet)
+  g.fillStyle = `rgba(255,248,235,${0.14 * pulse})`;
+  g.beginPath(); g.arc(x, y - bob, 22, 0, Math.PI * 2); g.fill();
+
+  g.save();
+  g.translate(x, y - bob);
+  g.scale(0.62, 0.62); // small, chibi-proportioned — Novice is the smallest stage
+
+  // shadow
+  g.fillStyle = "rgba(0,0,0,0.25)";
+  g.beginPath(); g.ellipse(0, 20, 10, 3, 0, 0, Math.PI * 2); g.fill();
+
+  // legs — small, simple, unadorned (silhouette rule: no ornamentation yet)
+  g.fillStyle = COCO_ACCENT;
+  g.fillRect(-3.5, 8, 3, 10);
+  g.fillRect(0.5, 8, 3, 10);
+  g.fillStyle = "#3a2a30";
+  g.fillRect(-4, 17, 4, 2.4); g.fillRect(0, 17, 4, 2.4);
+
+  // simple blouse/dress — small A-line, no cape, no gold trim
+  g.fillStyle = COCO_BLOUSE;
   g.beginPath();
-  g.arc(x, y, 24, 0, Math.PI * 2);
-  g.fill();
-  // trailing wisp
-  g.strokeStyle = `rgba(255,210,140,${0.35 * pulse})`;
-  g.lineWidth = 2;
+  g.moveTo(-6, 9); g.quadraticCurveTo(-7, -2, -4.5, -7);
+  g.quadraticCurveTo(0, -8.5, 4.5, -7);
+  g.quadraticCurveTo(7, -2, 6, 9);
+  g.quadraticCurveTo(0, 11, -6, 9);
+  g.closePath(); g.fill();
+  // a single small dusty-pink collar accent — the only trim she has
+  g.fillStyle = COCO_ACCENT;
+  g.beginPath(); g.ellipse(0, -6.5, 3, 1.3, 0, 0, Math.PI * 2); g.fill();
+
+  // arms
+  g.strokeStyle = COCO_BLOUSE; g.lineWidth = 3; g.lineCap = "round";
+  const armSwing = Math.sin(t * 2) * 2;
+  g.beginPath(); g.moveTo(-5.5, -4); g.lineTo(-8, 3 + armSwing); g.stroke();
+  g.beginPath(); g.moveTo(5.5, -4); g.lineTo(8, 3 - armSwing); g.stroke();
+
+  // head
+  const hy = -13;
+  const hgrad = g.createRadialGradient(-2, hy - 2, 1, 0, hy, 7);
+  hgrad.addColorStop(0, "#ffe6cf");
+  hgrad.addColorStop(1, "#f0c9a8");
+  g.fillStyle = hgrad;
+  g.beginPath(); g.ellipse(0, hy, 6.6, 7, 0, 0, Math.PI * 2); g.fill();
+
+  // twin-tails — two small triangles, per the silhouette-beat spec exactly
+  g.fillStyle = COCO_HAIR;
+  g.beginPath(); g.moveTo(-6.5, hy - 2); g.lineTo(-12, hy + 2); g.lineTo(-6, hy + 5); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(6.5, hy - 2); g.lineTo(12, hy + 2); g.lineTo(6, hy + 5); g.closePath(); g.fill();
+  // hair cap + fringe
   g.beginPath();
-  g.moveTo(x, y);
-  g.quadraticCurveTo(x - 10, y + 10, x - 20 + Math.sin(t * 2) * 4, y + 18);
-  g.stroke();
-  // core
-  g.fillStyle = UPAL.coco_core;
-  g.beginPath(); g.arc(x, y, 5 + pulse * 0.6, 0, Math.PI * 2); g.fill();
-  // tiny wings
-  g.fillStyle = "rgba(255,240,200,0.45)";
-  const wf = Math.sin(t * 18) * 3;
-  g.beginPath(); g.ellipse(x - 4, y - 2, 5, 2 + Math.abs(wf) * 0.4, 0.4, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(x + 4, y - 2, 5, 2 + Math.abs(wf) * 0.4, -0.4, 0, Math.PI * 2); g.fill();
+  g.moveTo(-6.8, hy);
+  g.quadraticCurveTo(-7.6, hy - 7.5, 0, hy - 8.2);
+  g.quadraticCurveTo(7.6, hy - 7.5, 6.8, hy);
+  g.quadraticCurveTo(0, hy - 4, -6.8, hy);
+  g.closePath(); g.fill();
+  g.strokeStyle = "rgba(255,255,255,0.3)"; g.lineWidth = 0.8;
+  g.beginPath(); g.moveTo(-2.5, hy - 6.6); g.quadraticCurveTo(0, hy - 7.2, 2.5, hy - 6.6); g.stroke();
+
+  // face — large simple eyes (bible: brows do the emotional work, mouth stays simple)
+  const blink = Math.sin(t * 1.1) > 0.96 ? 0.15 : 1;
+  g.fillStyle = "#3a2440";
+  g.beginPath(); g.ellipse(-2.4, hy + 0.5, 1.3, 1.5 * blink, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(2.4, hy + 0.5, 1.3, 1.5 * blink, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.9)";
+  g.beginPath(); g.arc(-2.7, hy, 0.4, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(2.1, hy, 0.4, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(90,50,55,0.6)"; g.lineWidth = 0.8;
+  g.beginPath(); g.moveTo(-1, hy + 3.4); g.quadraticCurveTo(0, hy + 3.9, 1, hy + 3.4); g.stroke();
+  g.fillStyle = "rgba(255,150,150,0.3)";
+  g.beginPath(); g.ellipse(-4, hy + 2, 1.2, 0.8, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(4, hy + 2, 1.2, 0.8, 0, 0, Math.PI * 2); g.fill();
+
+  g.restore();
+
+  // a few drifting motes around her — reads as "still a little magic"
+  // without granting her any gold yet
+  for (let i = 0; i < 3; i++) {
+    const ph = (t * 0.5 + i * 0.33) % 1;
+    const a = i * 2.1 + t * 0.4;
+    const mx = x + Math.cos(a) * (14 + ph * 6);
+    const my = y - bob + Math.sin(a) * (10 + ph * 4) - ph * 6;
+    g.fillStyle = `rgba(255,250,240,${(1 - ph) * 0.6})`;
+    g.beginPath(); g.arc(mx, my, 1, 0, Math.PI * 2); g.fill();
+  }
 }
 
 function hexA(hex: string, a: number): string {

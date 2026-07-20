@@ -827,24 +827,38 @@ function makeSign(): HTMLCanvasElement {
 }
 
 function makeHatch(): HTMLCanvasElement {
-  const [c, g] = cvs(80, 60);
-  g.fillStyle = "rgba(0,0,0,0.55)";
-  g.beginPath(); g.ellipse(40, 40, 30, 12, 0, 0, Math.PI * 2); g.fill();
-  const grad = g.createRadialGradient(40, 28, 4, 40, 30, 30);
-  grad.addColorStop(0, PAL.wood);
-  grad.addColorStop(1, PAL.wood_dark);
+  const [c, g] = cvs(84, 62);
+  const cx = 42, cy = 32;
+  // shadow
+  g.fillStyle = "rgba(0,0,0,0.5)";
+  g.beginPath(); g.ellipse(cx, cy + 10, 32, 12, 0, 0, Math.PI * 2); g.fill();
+  // ancient carved stone slab (matches the "wet stone" rim seen once
+  // discovered — this used to render as a wooden hatch, which contradicted
+  // the story's "Stone. Older than the school." line)
+  const grad = g.createRadialGradient(cx - 6, cy - 6, 4, cx, cy, 30);
+  grad.addColorStop(0, PAL.stone);
+  grad.addColorStop(0.6, PAL.stone_dark);
+  grad.addColorStop(1, "#4a4534");
   g.fillStyle = grad;
-  g.beginPath(); g.ellipse(40, 30, 28, 10, 0, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "rgba(0,0,0,0.55)";
-  g.lineWidth = 1;
-  for (let i = -2; i <= 2; i++) {
-    g.beginPath(); g.moveTo(40 + i * 8, 22); g.lineTo(40 + i * 8, 40); g.stroke();
-  }
-  g.strokeStyle = "#1a1a1a";
-  g.lineWidth = 2;
-  g.beginPath(); g.arc(40, 28, 5, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = "rgba(255,217,138,0.7)";
-  g.lineWidth = 0.8;
-  g.beginPath(); g.moveTo(28, 30); g.lineTo(52, 30); g.stroke();
+  g.beginPath(); g.ellipse(cx, cy, 29, 11, 0, 0, Math.PI * 2); g.fill();
+  // moss creeping across the stone
+  g.fillStyle = "rgba(74,120,90,0.55)";
+  g.beginPath(); g.ellipse(cx - 20, cy - 4, 9, 3, 0.3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(cx + 18, cy + 5, 8, 3, -0.2, 0, Math.PI * 2); g.fill();
+  // faint carved rings (concentric, "carvings she can't read")
+  g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 1;
+  g.beginPath(); g.ellipse(cx, cy, 21, 8, 0, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.ellipse(cx, cy, 13, 5, 0, 0, Math.PI * 2); g.stroke();
+  // wet-stone specular highlights
+  g.strokeStyle = "rgba(200,220,240,0.5)"; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(cx - 22, cy - 3); g.quadraticCurveTo(cx - 10, cy - 8, cx + 2, cy - 6); g.stroke();
+  // central iron ring set into the stone
+  g.strokeStyle = "#141414"; g.lineWidth = 2.4;
+  g.beginPath(); g.ellipse(cx, cy - 1, 5, 3, 0, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,0.25)"; g.lineWidth = 0.8;
+  g.beginPath(); g.ellipse(cx - 1, cy - 2, 5, 3, 0, 0, Math.PI * 1.1); g.stroke();
+  // faint golden crack of light along a hairline fissure
+  g.strokeStyle = "rgba(255,217,138,0.65)"; g.lineWidth = 0.8;
+  g.beginPath(); g.moveTo(cx - 14, cy + 2); g.quadraticCurveTo(cx, cy + 4, cx + 14, cy + 1); g.stroke();
   return c;
 }
