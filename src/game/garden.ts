@@ -286,29 +286,32 @@ async function gardenIntroLines(ctx: Ctx) {
 async function gardenSolveSequence(ctx: Ctx) {
   const gs = ctx.garden; if (!gs) return;
   const say = (ctx.story as unknown as { _say?: (t: string, d?: number, a?: boolean) => Promise<void> })._say;
-  ctx.camera.manual = true;
-  ctx.camera.targetX = gs.gate.x - 40;
-  ctx.camera.targetY = gs.gate.y - 40;
-  ctx.camera.targetZoom = 1.15;
-  // Rain of gold pollen
-  for (let i = 0; i < 60; i++) {
-    gs.particles.push({
-      x: rand(gs.gate.x - 200, gs.gate.x + 60),
-      y: gs.gate.y - 220,
-      vx: rand(-20, 20), vy: rand(20, 60),
-      life: rand(2, 4), c: "#ffd98a", s: rand(1, 2.6),
-    });
+  try {
+    ctx.camera.manual = true;
+    ctx.camera.targetX = gs.gate.x - 40;
+    ctx.camera.targetY = gs.gate.y - 40;
+    ctx.camera.targetZoom = 1.15;
+    // Rain of gold pollen
+    for (let i = 0; i < 60; i++) {
+      gs.particles.push({
+        x: rand(gs.gate.x - 200, gs.gate.x + 60),
+        y: gs.gate.y - 220,
+        vx: rand(-20, 20), vy: rand(20, 60),
+        life: rand(2, 4), c: "#ffd98a", s: rand(1, 2.6),
+      });
+    }
+    if (say) {
+      await sleep(1000);
+      await say("MemoryEcho: The garden remembers.", 3200, true);
+    }
+    gs.fragmentShown = true;
+    if (!ctx.fragments) ctx.fragments = [];
+    if (!ctx.fragments.includes("garden")) ctx.fragments.push("garden");
+    await sleep(3500);
+  } finally {
+    ctx.camera.manual = false;
+    ctx.camera.targetZoom = 0.95;
   }
-  if (say) {
-    await sleep(1000);
-    await say("MemoryEcho: The garden remembers.", 3200, true);
-  }
-  gs.fragmentShown = true;
-  if (!ctx.fragments) ctx.fragments = [];
-  if (!ctx.fragments.includes("garden")) ctx.fragments.push("garden");
-  await sleep(3500);
-  ctx.camera.manual = false;
-  ctx.camera.targetZoom = 0.95;
 }
 
 function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }

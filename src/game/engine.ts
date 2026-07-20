@@ -19,6 +19,8 @@ import { runStory, type StoryController, createStoryController } from "./story";
 import { buildUnderground, drawUnderground, drawUndergroundOverlay, updateUnderground, type UndergroundState } from "./underground";
 import { startFall, updateFall, drawFall, type FallState } from "./fall";
 import { buildGarden, drawGarden, drawGardenOverlay, updateGarden, type GardenState } from "./garden";
+import { buildHearth, drawHearth, drawHearthOverlay, updateHearth, type HearthState } from "./hearth";
+import { buildPrimer, drawPrimer, drawPrimerOverlay, updatePrimer, type PrimerState } from "./primer";
 
 // ---------- utilities ---------------------------------------------------
 export const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -87,9 +89,11 @@ export interface Ctx {
   story: StoryController;
   state: GameState;
   offscreen: OffscreenBuffers;
-  scene: "surface" | "underground" | "garden";
+  scene: "surface" | "underground" | "garden" | "hearth" | "primer";
   underground?: UndergroundState;
   garden?: GardenState;
+  hearth?: HearthState;
+  primer?: PrimerState;
   fall?: FallState;
   runner?: RunnerState;
   suspense: number;
@@ -157,7 +161,55 @@ export function enterGarden(ctx: Ctx) {
   ctx.camera.y = gs.playerStart.y;
   ctx.camera.targetX = gs.playerStart.x;
   ctx.camera.targetY = gs.playerStart.y;
-  ctx.camera.zoom = 0.95;
+  // NOTE: previously this also force-set ctx.camera.zoom directly, which
+  // caused a visible jump-cut in zoom the instant the portal was used
+  // (the fix for the reported "camera is bugged" issue). Position must
+  // still snap since the world coordinates are unrelated between scenes,
+  // but zoom should always ease via targetZoom so it's never a hard pop.
+  ctx.camera.targetZoom = 0.95;
+  ctx.camera.shake = 0;
+}
+
+/**
+ * Transition into Hearth Hollow, the hub connecting regions.
+ */
+export function enterHearth(ctx: Ctx) {
+  const hs = buildHearth();
+  ctx.hearth = hs;
+  ctx.scene = "hearth";
+  ctx.player.x = hs.playerStart.x;
+  ctx.player.y = hs.playerStart.y;
+  ctx.player.pose = "stand";
+  ctx.player.poseT = 0;
+  ctx.player.facing = 1;
+  ctx.player.facingLerp = 1;
+  ctx.camera.manual = false;
+  ctx.camera.x = hs.playerStart.x;
+  ctx.camera.y = hs.playerStart.y;
+  ctx.camera.targetX = hs.playerStart.x;
+  ctx.camera.targetY = hs.playerStart.y;
+  ctx.camera.targetZoom = 1.0;
+  ctx.camera.shake = 0;
+}
+
+/**
+ * Transition into the Sunken Primer, Bram's region.
+ */
+export function enterPrimer(ctx: Ctx) {
+  const ps = buildPrimer();
+  ctx.primer = ps;
+  ctx.scene = "primer";
+  ctx.player.x = ps.playerStart.x;
+  ctx.player.y = ps.playerStart.y;
+  ctx.player.pose = "stand";
+  ctx.player.poseT = 0;
+  ctx.player.facing = 1;
+  ctx.player.facingLerp = 1;
+  ctx.camera.manual = false;
+  ctx.camera.x = ps.playerStart.x;
+  ctx.camera.y = ps.playerStart.y;
+  ctx.camera.targetX = ps.playerStart.x;
+  ctx.camera.targetY = ps.playerStart.y;
   ctx.camera.targetZoom = 0.95;
   ctx.camera.shake = 0;
 }
@@ -385,6 +437,10 @@ function update(ctx: Ctx) {
     updateUnderground(ctx);
   } else if (ctx.scene === "garden") {
     updateGarden(ctx);
+  } else if (ctx.scene === "hearth") {
+    updateHearth(ctx);
+  } else if (ctx.scene === "primer") {
+    updatePrimer(ctx);
   }
 
   // fall sequence owns update while falling
@@ -414,16 +470,36 @@ function update(ctx: Ctx) {
         ctx.story.playKneelAndFall(ctx).catch((err: unknown) => console.error(err));
       }
     } else if (ctx.scene === "underground") {
-      // Interact with the doorway/portal into the Garden
+      // Interact with the doorway/portal into Hearth Hollow (the hub)
       const u = ctx.underground;
       if (u) {
         const px = ctx.player.x, py = ctx.player.y;
-        // Portal sits on the right edge of the chamber
         const portalX = u.bounds.w - 100;
         const portalY = u.groundY - 20;
         if (Math.hypot(px - portalX, py - portalY) < 90 && ctx.input.interactEdge) {
-          enterGarden(ctx);
+          enterHearth(ctx);
         }
+      }
+    } else if (ctx.scene === "hearth") {
+      const hs = ctx.hearth;
+      if (hs && ctx.input.interactEdge) {
+        for (const d of hs.doors) {
+          if (dist(ctx.player.x, ctx.player.y, d.x, d.y) < 90) {
+            if (d.target === "garden") enterGarden(ctx);
+            else enterPrimer(ctx);
+            break;
+          }
+        }
+      }
+    } else if (ctx.scene === "garden") {
+      const gs = ctx.garden;
+      if (gs && ctx.input.interactEdge && dist(ctx.player.x, ctx.player.y, gs.playerStart.x, gs.playerStart.y) < 70) {
+        enterHearth(ctx);
+      }
+    } else if (ctx.scene === "primer") {
+      const ps = ctx.primer;
+      if (ps && ctx.input.interactEdge && dist(ctx.player.x, ctx.player.y, ps.returnPoint.x, ps.returnPoint.y) < 70) {
+        enterHearth(ctx);
       }
     }
     ctx.input.interactEdge = false;
@@ -487,8 +563,12 @@ function render(ctx: Ctx) {
     drawSkyFx(ctx, sceneG);
   } else if (ctx.scene === "underground") {
     drawUnderground(ctx, sceneG, "sky");
-  } else {
+  } else if (ctx.scene === "garden") {
     drawGarden(ctx, sceneG, "sky");
+  } else if (ctx.scene === "hearth") {
+    drawHearth(ctx, sceneG, "sky");
+  } else {
+    drawPrimer(ctx, sceneG, "sky");
   }
 
   // === world layer (camera space) ===
@@ -509,11 +589,19 @@ function render(ctx: Ctx) {
     drawUnderground(ctx, sceneG, "midground");
     drawEntities(ctx, sceneG);
     drawUnderground(ctx, sceneG, "foreground");
-  } else {
+  } else if (ctx.scene === "garden") {
     drawGarden(ctx, sceneG, "ground");
     drawGarden(ctx, sceneG, "midground");
     drawEntities(ctx, sceneG);
     drawGarden(ctx, sceneG, "foreground");
+  } else if (ctx.scene === "hearth") {
+    drawHearth(ctx, sceneG, "ground");
+    drawHearth(ctx, sceneG, "midground");
+    drawEntities(ctx, sceneG);
+  } else {
+    drawPrimer(ctx, sceneG, "ground");
+    drawPrimer(ctx, sceneG, "midground");
+    drawEntities(ctx, sceneG);
   }
 
   sceneG.restore();
@@ -521,7 +609,9 @@ function render(ctx: Ctx) {
   // === lighting overlay (screen space) ===
   if (ctx.scene === "surface") drawLightingOverlay(ctx, sceneG);
   else if (ctx.scene === "underground") drawUndergroundOverlay(ctx, sceneG);
-  else drawGardenOverlay(ctx, sceneG);
+  else if (ctx.scene === "garden") drawGardenOverlay(ctx, sceneG);
+  else if (ctx.scene === "hearth") drawHearthOverlay(ctx, sceneG);
+  else drawPrimerOverlay(ctx, sceneG);
 
   // === post FX to main canvas ===
   g.clearRect(0, 0, w, h);

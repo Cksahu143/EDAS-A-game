@@ -119,6 +119,7 @@ export function createStoryController(ui: HTMLElement): StoryController {
   }
 
   async function playKneelAndFall(ctx: Ctx) {
+   try {
     // ============================================================
     // PHASE 2 — THE DISCOVERY
     // ============================================================
@@ -263,6 +264,12 @@ export function createStoryController(ui: HTMLElement): StoryController {
     await fadeTo(0, 1800);
     ctx.camera.manual = false;
     ctx.camera.targetZoom = 0.9;
+   } finally {
+    // Guaranteed even if the sequence above throws partway through —
+    // otherwise camera.manual can get stuck true forever, which reads
+    // to the player as "the camera stopped following me."
+    ctx.camera.manual = false;
+   }
   }
 
   // undergroundAmbient removed — Phase 3 ends at black.
@@ -280,19 +287,21 @@ export function createStoryController(ui: HTMLElement): StoryController {
     ctx.camera.zoom = 1.1;
     ctx.camera.targetZoom = 0.9;
 
-    await Promise.race([
-      (async () => {
-        await say("The morning of the great competition.", 2600);
-        await say("The banners are already up.", 2400);
-        await say("Somewhere in the maze, something is waiting.", 2800);
-      })(),
-      skippable(9000),
-    ]);
-
-    // hand off control
-    letterbox(false);
-    ctx.camera.manual = false;
-    ctx.camera.targetZoom = 0.85;
+    try {
+      await Promise.race([
+        (async () => {
+          await say("The morning of the great competition.", 2600);
+          await say("The banners are already up.", 2400);
+          await say("Somewhere in the maze, something is waiting.", 2800);
+        })(),
+        skippable(9000),
+      ]);
+    } finally {
+      // Guaranteed camera hand-off even if the intro sequence throws.
+      letterbox(false);
+      ctx.camera.manual = false;
+      ctx.camera.targetZoom = 0.85;
+    }
     ctx.state = "explore";
 
     // ambient loop

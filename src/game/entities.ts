@@ -157,6 +157,14 @@ export function updatePlayer(ctx: Ctx) {
       const u = ctx.underground;
       p.x = clamp(p.x, 60, u.bounds.w - 60);
       p.y = clamp(p.y, u.groundY - 40, u.bounds.h - 60);
+    } else if (ctx.scene === "hearth" && ctx.hearth) {
+      const hs = ctx.hearth;
+      p.x = clamp(p.x, 60, hs.bounds.w - 60);
+      p.y = clamp(p.y, hs.groundY - 20, hs.bounds.h - 60);
+    } else if (ctx.scene === "primer" && ctx.primer) {
+      const ps = ctx.primer;
+      p.x = clamp(p.x, 60, ps.bounds.w - 60);
+      p.y = clamp(p.y, ps.groundY - 20, ps.bounds.h - 60);
     }
     if (input.x < -0.15) p.facing = -1;
     else if (input.x > 0.15) p.facing = 1;
