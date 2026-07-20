@@ -126,7 +126,7 @@ export function EdasGame() {
 }
 
 const styles = `
-.edas-root{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;background:#000;color:#fdefd8;font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;-webkit-user-select:none;user-select:none;touch-action:none;}
+.edas-root{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;overflow:hidden;background:#000;color:#fdefd8;font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;-webkit-user-select:none;user-select:none;touch-action:none;}
 .edas-canvas{display:block;width:100%;height:100%;}
 .edas-ui{position:absolute;inset:0;pointer-events:none;z-index:5;}
 
@@ -164,12 +164,25 @@ const styles = `
 .edas-prompt[data-visible="1"]{opacity:1;transform:translateX(-50%) translateY(-4px);}
 .edas-prompt-key{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;border-radius:.35em;background:#ffd98a;color:#241040;font-weight:700;font-size:.75rem;}
 
-.edas-joystick{position:absolute;left:6vw;bottom:6vh;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,217,138,.18),rgba(10,6,18,.55) 70%);border:1px solid rgba(255,217,138,.35);opacity:0;transition:opacity .3s ease;pointer-events:auto;touch-action:none;z-index:9;}
+.edas-joystick{position:absolute;left:max(6vw, env(safe-area-inset-left) + 24px);bottom:max(6vh, env(safe-area-inset-bottom) + 24px);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,217,138,.18),rgba(10,6,18,.55) 70%);border:1px solid rgba(255,217,138,.35);opacity:0;transition:opacity .3s ease;pointer-events:auto;touch-action:none;z-index:9;}
 .edas-joystick[data-visible="1"]{opacity:1;}
 .edas-joystick-knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffd98a,#c9a13f);box-shadow:0 4px 18px rgba(0,0,0,.5);}
-.edas-interact-btn{position:absolute;right:6vw;bottom:8vh;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd98a,#c9552c);color:#241040;border:none;font-family:'Iowan Old Style',Palatino,Georgia,serif;font-weight:700;font-size:1.75rem;box-shadow:0 6px 22px rgba(0,0,0,.5),inset 0 -4px 10px rgba(0,0,0,.25);opacity:0;transition:opacity .3s ease,transform .12s ease;pointer-events:auto;z-index:9;cursor:pointer;}
+.edas-interact-btn{position:absolute;right:max(6vw, env(safe-area-inset-right) + 24px);bottom:max(8vh, env(safe-area-inset-bottom) + 32px);width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd98a,#c9552c);color:#241040;border:none;font-family:'Iowan Old Style',Palatino,Georgia,serif;font-weight:700;font-size:1.75rem;box-shadow:0 6px 22px rgba(0,0,0,.5),inset 0 -4px 10px rgba(0,0,0,.25);opacity:0;transition:opacity .3s ease,transform .12s ease;pointer-events:auto;z-index:9;cursor:pointer;}
 .edas-interact-btn[data-visible="1"]{opacity:1;}
 .edas-interact-btn:active{transform:scale(.94);}
+
+/* Tablet-sized touch screens: buttons were previously getting clipped
+   near the bottom edge on iPad-class devices because 100vh doesn't
+   account for the browser's own chrome, and there was no safe-area
+   padding at all. The max(...) rules above fix that on every device;
+   this block also bumps the tap targets up slightly since tablets have
+   more screen real estate to spare and small targets are harder to hit
+   at arm's length. */
+@media (min-width: 600px) and (pointer:coarse){
+  .edas-joystick{width:140px;height:140px;}
+  .edas-joystick-knob{width:60px;height:60px;margin:-30px 0 0 -30px;}
+  .edas-interact-btn{width:92px;height:92px;font-size:2rem;}
+}
 
 @media (hover:hover) and (pointer:fine){
   .edas-joystick,.edas-interact-btn{display:none;}
