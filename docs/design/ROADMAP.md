@@ -43,12 +43,18 @@ incrementally instead of pretending the whole thing exists already.
   sequence). Rebuilt as a mossy, carved stone slab with a wet-stone
   specular highlight and a faint golden crack of light, consistent with
   the broken-rim design already used in `entities.ts`'s dangle pose.
+- **Tower/bench/lamp/sign props**: rebuilt from flat rectangles into
+  curved silhouettes with gradient shading (turret now has a slight
+  cylindrical bulge and an arched glowing window instead of a plain
+  box; lamp has a rounded hexagonal housing; sign/bench use wood-grain
+  gradients and rounded corners).
 
 ### Still using placeholder/older-style sprites
 Hedges and bushes (already blob/gradient-based, left alone — lower
-priority than the hard rebuilds above), lamp/sign/bench/tower props,
-Sprocket, Bram, and all Garden/Hearth/Primer scene dressing (flowers,
-gate, mushrooms, crystals, rocks, pages).
+priority than the hard rebuilds above), the Garden's flowers/gate
+(already gradient/glow-based, also lower priority), Sprocket, Bram, and
+all Hearth/Primer scene dressing plus underground rocks/mushrooms/
+crystals.
 
 Everything else: CoCo's full 8-stage Title progression (she's fixed at
 Novice for now), the other 7 ensemble cast members, Fen Solenne, the

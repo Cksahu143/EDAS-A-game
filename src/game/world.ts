@@ -734,96 +734,166 @@ function makeStone(): HTMLCanvasElement {
 }
 
 function makeTower(): HTMLCanvasElement {
-  const [c, g] = cvs(120, 200);
+  const [c, g] = cvs(124, 204);
+  const cx = 62;
   g.fillStyle = "rgba(0,0,0,0.4)";
-  g.beginPath(); g.ellipse(60, 195, 55, 8, 0, 0, Math.PI * 2); g.fill();
-  const grad = g.createLinearGradient(0, 0, 120, 0);
+  g.beginPath(); g.ellipse(cx, 198, 54, 8, 0, 0, Math.PI * 2); g.fill();
+  // cylindrical turret body — curved sides via a subtle bulge instead of
+  // a flat rectangle, so it doesn't read as a plain box
+  const grad = g.createLinearGradient(cx - 46, 0, cx + 46, 0);
   grad.addColorStop(0, PAL.stone_dark);
-  grad.addColorStop(0.5, PAL.stone);
+  grad.addColorStop(0.4, PAL.stone);
+  grad.addColorStop(0.6, PAL.stone);
   grad.addColorStop(1, PAL.stone_dark);
   g.fillStyle = grad;
-  g.fillRect(15, 40, 90, 155);
-  g.fillStyle = PAL.terra;
   g.beginPath();
-  g.moveTo(60, 0);
-  g.lineTo(115, 50);
-  g.lineTo(5, 50);
-  g.closePath();
-  g.fill();
-  g.fillStyle = "rgba(0,0,0,0.25)";
+  g.moveTo(cx - 46, 195);
+  g.quadraticCurveTo(cx - 50, 120, cx - 44, 46);
+  g.lineTo(cx + 44, 46);
+  g.quadraticCurveTo(cx + 50, 120, cx + 46, 195);
+  g.closePath(); g.fill();
+  // conical roof with a soft highlight edge
+  g.fillStyle = shadeGrad2(g, cx - 58, 0, cx + 58, 0, PAL.terra, "#e8875a");
   g.beginPath();
-  g.moveTo(60, 0); g.lineTo(115, 50); g.lineTo(60, 50); g.closePath();
-  g.fill();
-  g.strokeStyle = "rgba(0,0,0,0.2)";
-  g.lineWidth = 1;
-  for (let y = 60; y < 190; y += 24) {
-    g.beginPath(); g.moveTo(15, y); g.lineTo(105, y); g.stroke();
-  }
-  for (let x = 30; x < 100; x += 24) {
-    for (let y = 60; y < 190; y += 24) {
-      g.beginPath(); g.moveTo(x + (y / 24) % 2 * 12, y); g.lineTo(x + (y / 24) % 2 * 12, y + 24); g.stroke();
+  g.moveTo(cx, 0);
+  g.quadraticCurveTo(cx + 40, 20, cx + 58, 52);
+  g.lineTo(cx - 58, 52);
+  g.quadraticCurveTo(cx - 40, 20, cx, 0);
+  g.closePath(); g.fill();
+  g.fillStyle = "rgba(0,0,0,0.22)";
+  g.beginPath(); g.moveTo(cx, 0); g.quadraticCurveTo(cx + 40, 20, cx + 58, 52); g.lineTo(cx, 52); g.closePath(); g.fill();
+  // roof finial
+  g.fillStyle = PAL.gold;
+  g.beginPath(); g.arc(cx, -2, 3.5, 0, Math.PI * 2); g.fill();
+  // stone block texture — offset rows instead of a rigid grid
+  g.strokeStyle = "rgba(0,0,0,0.18)"; g.lineWidth = 1;
+  for (let row = 0, y = 64; y < 190; row++, y += 22) {
+    g.beginPath(); g.moveTo(cx - 44, y); g.lineTo(cx + 44, y); g.stroke();
+    const off = (row % 2) * 12;
+    for (let x = cx - 44 + off; x < cx + 44; x += 24) {
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 22); g.stroke();
     }
   }
-  g.fillStyle = "#241040";
-  g.fillRect(50, 90, 20, 30);
-  g.fillStyle = PAL.gold_soft;
-  g.fillRect(52, 92, 16, 6);
+  // arched window with warm interior glow
+  g.fillStyle = "#1a1024";
+  g.beginPath();
+  g.moveTo(cx - 10, 128); g.lineTo(cx - 10, 100);
+  g.quadraticCurveTo(cx, 90, cx + 10, 100);
+  g.lineTo(cx + 10, 128); g.closePath(); g.fill();
+  const wgrad = g.createRadialGradient(cx, 112, 2, cx, 112, 14);
+  wgrad.addColorStop(0, "rgba(255,224,150,0.85)");
+  wgrad.addColorStop(1, "rgba(255,180,90,0.15)");
+  g.fillStyle = wgrad;
+  g.beginPath(); g.ellipse(cx, 112, 8, 14, 0, 0, Math.PI * 2); g.fill();
   return c;
 }
 
 function makeBench(): HTMLCanvasElement {
-  const [c, g] = cvs(90, 40);
-  g.fillStyle = "rgba(0,0,0,0.3)";
-  g.beginPath(); g.ellipse(45, 38, 40, 4, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = PAL.wood;
-  g.fillRect(10, 18, 70, 8);
+  const [c, g] = cvs(94, 44);
+  g.fillStyle = "rgba(0,0,0,0.32)";
+  g.beginPath(); g.ellipse(47, 42, 38, 4, 0, 0, Math.PI * 2); g.fill();
+  // seat — wood-grain gradient with a soft rounded top edge
+  g.fillStyle = shadeGrad2(g, 12, 16, 82, 26, PAL.wood_dark, PAL.wood);
+  g.beginPath();
+  g.moveTo(12, 26); g.quadraticCurveTo(47, 15, 82, 26); g.lineTo(82, 30); g.lineTo(12, 30);
+  g.closePath(); g.fill();
+  // wood-grain lines
+  g.strokeStyle = "rgba(0,0,0,0.18)"; g.lineWidth = 0.8;
+  for (let i = 0; i < 3; i++) {
+    const yy = 20 + i * 3;
+    g.beginPath(); g.moveTo(16, yy + 2); g.quadraticCurveTo(47, yy - 3, 78, yy + 2); g.stroke();
+  }
+  // legs — slightly tapered, rounded feet
   g.fillStyle = PAL.wood_dark;
-  g.fillRect(15, 26, 6, 12);
-  g.fillRect(69, 26, 6, 12);
-  g.fillStyle = "rgba(255,255,255,0.15)";
-  g.fillRect(10, 18, 70, 2);
+  g.beginPath(); g.moveTo(17, 30); g.lineTo(21, 30); g.lineTo(19, 41); g.lineTo(15, 41); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(71, 30); g.lineTo(75, 30); g.lineTo(77, 41); g.lineTo(73, 41); g.closePath(); g.fill();
+  // top highlight
+  g.strokeStyle = "rgba(255,255,255,0.2)"; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(14, 24); g.quadraticCurveTo(47, 13.5, 80, 24); g.stroke();
   return c;
 }
 
 function makeLamp(): HTMLCanvasElement {
-  const [c, g] = cvs(30, 100);
+  const [c, g] = cvs(32, 104);
   g.fillStyle = "rgba(0,0,0,0.3)";
-  g.beginPath(); g.ellipse(15, 98, 10, 3, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = "#2a2018";
-  g.fillRect(13, 20, 4, 78);
-  g.fillStyle = "#3a2c20";
+  g.beginPath(); g.ellipse(16, 101, 9, 2.6, 0, 0, Math.PI * 2); g.fill();
+  // tapered post with gradient shading
+  g.fillStyle = shadeGrad2(g, 12, 20, 20, 96, "#1a140e", "#3a2c1e");
   g.beginPath();
-  g.moveTo(5, 20); g.lineTo(25, 20); g.lineTo(20, 5); g.lineTo(10, 5); g.closePath();
-  g.fill();
-  const grad = g.createRadialGradient(15, 14, 1, 15, 14, 10);
-  grad.addColorStop(0, "#fff2c0");
-  grad.addColorStop(1, "#d99a3a");
+  g.moveTo(14.5, 96); g.lineTo(15.2, 22); g.lineTo(16.8, 22); g.lineTo(17.5, 96);
+  g.closePath(); g.fill();
+  // small decorative ring partway down
+  g.fillStyle = "#241a10";
+  g.beginPath(); g.ellipse(16, 58, 3.4, 1.4, 0, 0, Math.PI * 2); g.fill();
+  // lamp housing — rounded hexagonal-ish silhouette instead of a flat box
+  g.fillStyle = shadeGrad2(g, 4, 6, 28, 22, "#241a12", "#4a3826");
+  g.beginPath();
+  g.moveTo(16, 3); g.lineTo(26, 20); g.lineTo(23, 24); g.lineTo(9, 24); g.lineTo(6, 20);
+  g.closePath(); g.fill();
+  // glass panes with warm inner glow
+  const grad = g.createRadialGradient(16, 16, 1, 16, 16, 11);
+  grad.addColorStop(0, "#fff4cf");
+  grad.addColorStop(0.6, "#f5c56a");
+  grad.addColorStop(1, "#c9852e");
   g.fillStyle = grad;
-  g.fillRect(8, 8, 14, 12);
+  g.beginPath();
+  g.moveTo(16, 8); g.lineTo(22, 19); g.lineTo(20, 22); g.lineTo(12, 22); g.lineTo(10, 19);
+  g.closePath(); g.fill();
+  // frame lines over the glass
+  g.strokeStyle = "rgba(0,0,0,0.35)"; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(16, 8); g.lineTo(16, 22); g.stroke();
+  g.beginPath(); g.moveTo(10, 19); g.lineTo(22, 19); g.stroke();
+  // finial
+  g.fillStyle = "#241a12";
+  g.beginPath(); g.arc(16, 2, 2, 0, Math.PI * 2); g.fill();
   return c;
 }
 
 function makeSign(): HTMLCanvasElement {
-  const [c, g] = cvs(120, 80);
+  const [c, g] = cvs(124, 84);
+  const cx = 62;
   g.fillStyle = "rgba(0,0,0,0.3)";
-  g.beginPath(); g.ellipse(60, 78, 30, 3, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = PAL.wood_dark;
-  g.fillRect(20, 40, 5, 40);
-  g.fillRect(95, 40, 5, 40);
-  const grad = g.createLinearGradient(0, 20, 0, 60);
-  grad.addColorStop(0, PAL.wood);
-  grad.addColorStop(1, PAL.wood_dark);
+  g.beginPath(); g.ellipse(cx, 82, 28, 3, 0, 0, Math.PI * 2); g.fill();
+  // posts with gradient shading
+  g.fillStyle = shadeGrad2(g, cx - 42, 40, cx - 38, 80, PAL.wood_dark, PAL.wood);
+  g.beginPath(); g.moveTo(cx - 43, 40); g.lineTo(cx - 37, 40); g.lineTo(cx - 38, 80); g.lineTo(cx - 42, 80); g.closePath(); g.fill();
+  g.fillStyle = shadeGrad2(g, cx + 32, 40, cx + 38, 80, PAL.wood_dark, PAL.wood);
+  g.beginPath(); g.moveTo(cx + 32, 40); g.lineTo(cx + 38, 40); g.lineTo(cx + 37, 80); g.lineTo(cx + 33, 80); g.closePath(); g.fill();
+  // board — softly rounded corners, wood-grain gradient
+  const grad = shadeGrad2(g, cx - 50, 20, cx + 50, 60, PAL.wood_dark, PAL.wood);
   g.fillStyle = grad;
-  g.fillRect(10, 20, 100, 34);
-  g.strokeStyle = "rgba(0,0,0,0.4)";
-  g.strokeRect(10, 20, 100, 34);
+  roundRect(g, cx - 52, 20, 104, 36, 5);
+  g.fill();
+  g.strokeStyle = "rgba(0,0,0,0.35)"; g.lineWidth = 1.5;
+  roundRect(g, cx - 52, 20, 104, 36, 5);
+  g.stroke();
+  // grain lines
+  g.strokeStyle = "rgba(0,0,0,0.12)"; g.lineWidth = 0.8;
+  for (let i = 0; i < 3; i++) {
+    g.beginPath(); g.moveTo(cx - 48, 28 + i * 8); g.lineTo(cx + 48, 27 + i * 8); g.stroke();
+  }
+  // carved text
   g.fillStyle = PAL.cream;
   g.font = "italic 11px 'Iowan Old Style', Palatino, Georgia, serif";
   g.textAlign = "center";
-  g.fillText("EDAS Academy", 60, 38);
+  g.fillText("EDAS Academy", cx, 38);
   g.fillStyle = PAL.gold_soft;
-  g.fillText("The Great Competition", 60, 50);
+  g.fillText("The Great Competition", cx, 50);
+  // small decorative iron caps on the posts
+  g.fillStyle = "#1a1a1a";
+  g.beginPath(); g.arc(cx - 40, 40, 3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(cx + 35, 40, 3, 0, Math.PI * 2); g.fill();
   return c;
+}
+
+function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
 }
 
 function makeHatch(): HTMLCanvasElement {
