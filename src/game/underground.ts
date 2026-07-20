@@ -272,11 +272,19 @@ export function drawUnderground(ctx: Ctx, g: CanvasRenderingContext2D, layer: "s
     g.closePath();
     g.fill();
 
-    // Background silhouette rocks
+    // Background rocks — gradient-shaded instead of flat silhouettes
     for (const r of u.bgRocks) {
-      g.fillStyle = UPAL.rock_mid;
+      const grad = g.createRadialGradient(r.x - r.r * 0.3, r.y - r.r * 0.3, r.r * 0.1, r.x, r.y, r.r);
+      grad.addColorStop(0, UPAL.rock_hi);
+      grad.addColorStop(0.6, UPAL.rock_mid);
+      grad.addColorStop(1, UPAL.rock_deep);
+      g.fillStyle = grad;
       g.beginPath();
       g.ellipse(r.x, r.y, r.r, r.r * 0.7, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "rgba(74,120,90,0.25)";
+      g.beginPath();
+      g.ellipse(r.x + r.r * 0.2, r.y + r.r * 0.35, r.r * 0.5, r.r * 0.15, 0, 0, Math.PI * 2);
       g.fill();
     }
 
@@ -413,9 +421,13 @@ export function drawUnderground(ctx: Ctx, g: CanvasRenderingContext2D, layer: "s
   }
 
   if (layer === "foreground") {
-    // Foreground silhouette rocks in front of player
+    // Foreground rocks — gradient-shaded, dark enough to still read as
+    // "in front of the player" but no longer flat silhouettes
     for (const r of u.fgRocks) {
-      g.fillStyle = UPAL.rock_deep;
+      const grad = g.createRadialGradient(r.x - r.r * 0.25, r.y - r.r * 0.25, r.r * 0.1, r.x, r.y, r.r);
+      grad.addColorStop(0, "#241e34");
+      grad.addColorStop(1, UPAL.rock_deep);
+      g.fillStyle = grad;
       g.beginPath();
       g.ellipse(r.x, r.y, r.r, r.r * 0.55, 0, 0, Math.PI * 2);
       g.fill();
