@@ -379,6 +379,30 @@ interface Outfit { skin: string; hair: string; shirt: string; pants: string; acc
 const PLAYER_DRAW_SCALE = 2.1;
 const NPC_DRAW_SCALE = 1.35;
 
+// Small helpers for the rebuilt rig — soft capsule limbs and a reusable
+// vertical shading gradient, instead of flat single-color rectangles.
+function shadeGrad(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, base: string) {
+  const grad = g.createLinearGradient(x0, y0, x1, y1);
+  grad.addColorStop(0, lighten(base, 22));
+  grad.addColorStop(0.55, base);
+  grad.addColorStop(1, lighten(base, -26));
+  return grad;
+}
+function lighten(hex: string, amt: number): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const r = Math.max(0, Math.min(255, parseInt(h.slice(0, 2), 16) + amt));
+  const g2 = Math.max(0, Math.min(255, parseInt(h.slice(2, 4), 16) + amt));
+  const b = Math.max(0, Math.min(255, parseInt(h.slice(4, 6), 16) + amt));
+  return `rgb(${r},${g2},${b})`;
+}
+function limb(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, w: number, color: string | CanvasGradient) {
+  g.strokeStyle = color;
+  g.lineWidth = w;
+  g.lineCap = "round";
+  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+}
+
 function drawCharacter(
   g: CanvasRenderingContext2D,
   x: number, y: number,
@@ -404,139 +428,169 @@ function drawCharacter(
   g.scale(scale * fx, scale);
 
   if (pose === "kneel") {
-    g.fillStyle = o.pants;
-    g.beginPath(); g.ellipse(0, 8, 11, 6, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "#1a1010";
-    g.fillRect(-9, 10, 5, 3);
-    g.fillRect(4, 10, 5, 3);
-    g.fillStyle = o.shirt;
+    // folded legs — soft rounded mound instead of a flat ellipse
+    g.fillStyle = shadeGrad(g, 0, 2, 0, 14, o.pants);
+    g.beginPath(); g.ellipse(0, 8, 11, 6.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#181414";
+    g.beginPath(); g.ellipse(-8, 11, 3.4, 2.2, 0.2, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(7, 11, 3.4, 2.2, -0.2, 0, Math.PI * 2); g.fill();
+    // torso leaning forward — rounded quad via curves
+    g.fillStyle = shadeGrad(g, -7, -2, 7, 6, o.shirt);
     g.beginPath();
-    g.moveTo(-7, -2); g.lineTo(7, -2); g.lineTo(6, 6); g.lineTo(-6, 6); g.closePath(); g.fill();
-    g.fillStyle = "rgba(0,0,0,0.20)";
-    g.beginPath(); g.moveTo(-7, -2); g.lineTo(0, -2); g.lineTo(0, 6); g.lineTo(-6, 6); g.closePath(); g.fill();
+    g.moveTo(-7, 5);
+    g.quadraticCurveTo(-7.5, -3, -3, -4);
+    g.quadraticCurveTo(0, -5, 3, -4);
+    g.quadraticCurveTo(7.5, -3, 7, 5);
+    g.quadraticCurveTo(0, 8, -7, 5);
+    g.closePath(); g.fill();
     g.fillStyle = o.accent;
-    g.fillRect(-0.5, 0, 1, 1); g.fillRect(-0.5, 3, 1, 1);
-    g.fillRect(-6, 4, 12, 1.5);
-    g.fillStyle = "#3a2010"; g.fillRect(-1, 4, 2, 1.5);
-    g.strokeStyle = o.skin; g.lineWidth = 3; g.lineCap = "round";
-    g.beginPath(); g.moveTo(4, -1); g.quadraticCurveTo(9, 4, 10, 10); g.stroke();
-    g.strokeStyle = o.shirt; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(4, -1); g.lineTo(7, 3); g.stroke();
+    g.beginPath(); g.arc(0, 1, 0.9, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(0, 4, 0.9, 0, Math.PI * 2); g.fill();
+    // reaching arm
+    limb(g, 4, -1, 9, 5, 3.4, o.shirt);
+    limb(g, 9, 5, 10.5, 10, 3, o.skin);
+    // head
     const hy = -10;
-    g.fillStyle = o.skin;
-    g.beginPath(); g.arc(0, hy, 7, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "rgba(0,0,0,0.12)";
-    g.beginPath(); g.arc(-2, hy, 5, Math.PI * 0.4, Math.PI * 1.6); g.fill();
-    g.fillStyle = o.hair;
-    g.beginPath(); g.arc(0, hy - 3, 7.5, Math.PI, Math.PI * 2); g.fill();
-    g.fillRect(-6, hy - 4, 4, 3); g.fillRect(2, hy - 4, 4, 3);
-    g.beginPath();
-    g.moveTo(4, hy); g.quadraticCurveTo(8, hy + 4, 6, hy + 8); g.lineTo(4, hy + 6); g.closePath(); g.fill();
-    g.fillStyle = "#241040";
-    g.fillRect(-3, hy, 2, 1); g.fillRect(2, hy, 2, 1);
-    g.fillStyle = o.hair;
-    g.fillRect(-3, hy - 2, 2, 1); g.fillRect(2, hy - 2, 2, 1);
-    g.fillStyle = "rgba(90,40,40,0.7)";
-    g.fillRect(-1, hy + 3, 3, 1);
-    g.fillStyle = "rgba(255,150,120,0.5)";
-    g.fillRect(-4, hy + 2, 2, 1); g.fillRect(3, hy + 2, 2, 1);
+    drawHead(g, 0, hy, o, 0, "down");
     g.restore();
     return;
   }
 
-  g.fillStyle = o.pants;
-  g.fillRect(-5, 6, 4, 12 - legSwing);
-  g.fillRect(1, 6, 4, 12 + legSwing);
-  g.fillStyle = "rgba(255,255,255,0.10)";
-  g.fillRect(-5, 6, 1, 12 - legSwing);
-  g.fillRect(1, 6, 1, 12 + legSwing);
-  g.fillStyle = "#1a1010";
-  g.fillRect(-6, 17 - legSwing, 5, 3);
-  g.fillRect(1, 17 + legSwing, 5, 3);
-  g.fillStyle = "#3a2418";
-  g.fillRect(-2, 17 - legSwing, 1, 3);
-  g.fillRect(4, 17 + legSwing, 1, 3);
+  // === standing rig — smoother capsule limbs, rounded torso, soft shading ===
+  const legLiftL = 12 - legSwing, legLiftR = 12 + legSwing;
 
+  // legs (capsules, not rectangles)
+  limb(g, -3, 6, -3 - legSwing * 0.15, 6 + legLiftL, 4.6, shadeGrad(g, -3, 6, -3, 18, o.pants));
+  limb(g, 3, 6, 3 + legSwing * 0.15, 6 + legLiftR, 4.6, shadeGrad(g, 3, 6, 3, 18, o.pants));
+  // shoes
+  g.fillStyle = "#171313";
+  g.beginPath(); g.ellipse(-3 - legSwing * 0.15, 6 + legLiftL, 3.6, 2.3, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(3 + legSwing * 0.15, 6 + legLiftR, 3.6, 2.3, 0, 0, Math.PI * 2); g.fill();
+
+  // torso — soft rounded silhouette via bezier, not a hard-edged quad
   g.save();
   g.translate(0, breathing * 0.3);
-  g.fillStyle = o.shirt;
+  g.fillStyle = shadeGrad(g, -7, -7, 7, 9, o.shirt);
   g.beginPath();
-  g.moveTo(-7, -6);
-  g.lineTo(7, -6);
-  g.lineTo(6, 8);
-  g.lineTo(-6, 8);
-  g.closePath(); g.fill();
-  g.fillStyle = "rgba(0,0,0,0.20)";
-  g.beginPath();
-  g.moveTo(-7, -6); g.lineTo(0, -6); g.lineTo(0, 8); g.lineTo(-6, 8); g.closePath();
+  g.moveTo(-6.5, 8);
+  g.quadraticCurveTo(-8, -2, -5.5, -7);
+  g.quadraticCurveTo(0, -9, 5.5, -7);
+  g.quadraticCurveTo(8, -2, 6.5, 8);
+  g.quadraticCurveTo(0, 10.5, -6.5, 8);
+  g.closePath();
   g.fill();
-  g.fillStyle = "rgba(255,255,255,0.14)";
-  g.fillRect(3, -6, 4, 2);
-  g.fillStyle = "rgba(0,0,0,0.35)";
-  g.fillRect(-3, -6, 6, 1);
+  // rim light on the far shoulder
+  g.strokeStyle = "rgba(255,255,255,0.22)";
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(4.5, -6.5); g.quadraticCurveTo(7.5, -2, 6, 6); g.stroke();
+  // collar
+  g.fillStyle = "rgba(0,0,0,0.3)";
+  g.beginPath(); g.ellipse(0, -6.5, 3.2, 1.3, 0, 0, Math.PI * 2); g.fill();
+  // buttons
   g.fillStyle = o.accent;
-  g.fillRect(-0.5, -3, 1, 1);
-  g.fillRect(-0.5, 0, 1, 1);
-  g.fillRect(-0.5, 3, 1, 1);
-  g.fillStyle = o.accent;
-  g.fillRect(-6, 6, 12, 1.5);
-  g.fillStyle = "#3a2010";
-  g.fillRect(-1, 6, 2, 1.5);
+  g.beginPath(); g.arc(0, -2.5, 0.8, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(0, 0.5, 0.8, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(0, 3.5, 0.8, 0, Math.PI * 2); g.fill();
+  // belt
+  g.fillStyle = shadeGrad(g, -6, 6, 6, 8, o.accent);
+  g.fillRect(-6.5, 6, 13, 2);
+  g.fillStyle = "#241812";
+  g.fillRect(-1.4, 6, 2.8, 2);
 
-  g.fillStyle = o.shirt;
-  g.save();
-  g.translate(-6, -4);
-  g.rotate(armSwing * 0.06);
-  g.fillRect(-1.5, 0, 3, 9);
+  // arms — smooth capsules with hand blobs
+  const armBendL = armSwing * 0.5;
+  const armBendR = -armSwing * 0.5;
+  limb(g, -6.5, -4, -8.5 + armBendL, 5, 3.4, shadeGrad(g, -8, -4, -8, 5, o.shirt));
+  limb(g, 6.5, -4, 8.5 + armBendR, 5, 3.4, shadeGrad(g, 8, -4, 8, 5, o.shirt));
   g.fillStyle = o.skin;
-  g.fillRect(-1.5, 9, 3, 3);
-  g.restore();
-  g.fillStyle = o.shirt;
-  g.save();
-  g.translate(6, -4);
-  g.rotate(-armSwing * 0.06);
-  g.fillRect(-1.5, 0, 3, 9);
-  g.fillStyle = o.skin;
-  g.fillRect(-1.5, 9, 3, 3);
+  g.beginPath(); g.arc(-8.5 + armBendL, 6.5, 2, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(8.5 + armBendR, 6.5, 2, 0, Math.PI * 2); g.fill();
   g.restore();
 
-  const hy = -14 + breathing * 0.3;
-  g.fillStyle = o.skin;
-  g.beginPath(); g.arc(0, hy, 7, 0, Math.PI * 2); g.fill();
-  g.fillStyle = "rgba(0,0,0,0.12)";
-  g.beginPath(); g.arc(-2, hy, 5, Math.PI * 0.4, Math.PI * 1.6); g.fill();
-  g.fillStyle = o.skin;
-  g.fillRect(-8, hy - 1, 2, 3);
-  g.fillStyle = "rgba(0,0,0,0.25)";
-  g.fillRect(-8, hy + 1, 2, 1);
-  g.fillStyle = o.hair;
-  g.beginPath();
-  g.arc(0, hy - 3, 7.5, Math.PI, Math.PI * 2);
-  g.fill();
-  g.fillRect(-6, hy - 4, 4, 3);
-  g.fillRect(2, hy - 4, 4, 3);
-  g.beginPath();
-  g.moveTo(4, hy);
-  g.quadraticCurveTo(8, hy + 4, 6, hy + 8);
-  g.lineTo(4, hy + 6);
-  g.closePath(); g.fill();
-  g.fillStyle = "rgba(255,255,255,0.14)";
-  g.fillRect(-3, hy - 5, 4, 1);
-  g.fillStyle = "#fdefd8";
-  g.fillRect(-3, hy - 1, 2, 2);
-  g.fillRect(2, hy - 1, 2, 2);
-  g.fillStyle = "#241040";
-  g.fillRect(-2, hy, 1, 1);
-  g.fillRect(3, hy, 1, 1);
-  g.fillStyle = o.hair;
-  g.fillRect(-3, hy - 3, 2, 1);
-  g.fillRect(2, hy - 3, 2, 1);
-  g.fillStyle = "rgba(90,40,40,0.7)";
-  g.fillRect(-1, hy + 3, 3, 1);
-  g.fillStyle = "rgba(255,150,120,0.45)";
-  g.fillRect(-4, hy + 2, 2, 1);
-  g.fillRect(3, hy + 2, 2, 1);
+  drawHead(g, 0, -14 + breathing * 0.3, o, breathing, "front");
+
   g.restore();
+}
+
+// Shared, rounder head used by both standing and kneeling poses. `look`
+// tilts the face slightly for the kneel pose so it doesn't feel identical
+// to standing.
+function drawHead(g: CanvasRenderingContext2D, hx: number, hy: number, o: Outfit, breathing: number, look: "front" | "down") {
+  const tilt = look === "down" ? 1.4 : 0;
+  g.save();
+  g.translate(hx, hy);
+
+  // soft neck
+  g.fillStyle = shadeGrad(g, 0, 6, 0, 10, o.skin);
+  g.fillRect(-2.2, 5, 4.4, 5);
+
+  // head — radial shading instead of a flat fill + separate shadow disc
+  const grad = g.createRadialGradient(-2.5, -2 + tilt, 1, 0, 0, 8);
+  grad.addColorStop(0, lighten(o.skin, 26));
+  grad.addColorStop(0.55, o.skin);
+  grad.addColorStop(1, lighten(o.skin, -22));
+  g.fillStyle = grad;
+  g.beginPath(); g.ellipse(0, tilt * 0.3, 7.2, 7.6, 0, 0, Math.PI * 2); g.fill();
+
+  // ear
+  g.fillStyle = lighten(o.skin, -8);
+  g.beginPath(); g.ellipse(-7.4, 0.5, 1.6, 2.6, 0, 0, Math.PI * 2); g.fill();
+
+  // hair — soft rounded cap with a side-swept fringe (bezier silhouette
+  // instead of stacked rectangles)
+  g.fillStyle = shadeGrad(g, -7, -8, 7, -2, o.hair);
+  g.beginPath();
+  g.moveTo(-7.6, 0.5);
+  g.quadraticCurveTo(-8.6, -8.5, 0, -9.2);
+  g.quadraticCurveTo(8.6, -8.5, 7.6, 0.5);
+  g.quadraticCurveTo(6.6, -4.5, 3.5, -5.4);
+  g.quadraticCurveTo(0, -6, -3.5, -5.4);
+  g.quadraticCurveTo(-6.6, -4.5, -7.6, 0.5);
+  g.closePath();
+  g.fill();
+  // hair shine
+  g.strokeStyle = "rgba(255,255,255,0.2)";
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(-3, -7.6); g.quadraticCurveTo(0, -8.4, 3, -7.6); g.stroke();
+  // side strand
+  g.fillStyle = o.hair;
+  g.beginPath();
+  g.moveTo(5.5, -1); g.quadraticCurveTo(9, 3, 6.5, 8);
+  g.quadraticCurveTo(4.8, 4, 4.5, -1);
+  g.closePath(); g.fill();
+
+  // face shadow (subtle, on the far side)
+  g.fillStyle = "rgba(0,0,0,0.10)";
+  g.beginPath(); g.ellipse(-2.5, tilt * 0.3 + 1, 4.2, 5, 0, Math.PI * 0.3, Math.PI * 1.3); g.fill();
+
+  const ey = tilt + 0.5;
+  if (look === "down") {
+    // downcast slits
+    g.fillStyle = "#241040";
+    g.fillRect(-3.4, ey, 2.2, 0.9); g.fillRect(1.2, ey, 2.2, 0.9);
+  } else {
+    // round eyes with a bright catchlight
+    g.fillStyle = "#fdefd8";
+    g.beginPath(); g.ellipse(-2.6, ey, 1.5, 1.7, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(2.6, ey, 1.5, 1.7, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#241040";
+    g.beginPath(); g.arc(-2.3, ey + 0.3, 0.85, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(2.9, ey + 0.3, 0.85, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgba(255,255,255,0.85)";
+    g.beginPath(); g.arc(-2.7, ey, 0.4, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(2.5, ey, 0.4, 0, Math.PI * 2); g.fill();
+  }
+  // brows
+  g.strokeStyle = o.hair; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(-3.6, ey - 2.2); g.lineTo(-1.4, ey - 2.6); g.stroke();
+  g.beginPath(); g.moveTo(1.4, ey - 2.6); g.lineTo(3.6, ey - 2.2); g.stroke();
+  // mouth
+  g.strokeStyle = "rgba(110,55,55,0.75)"; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(-1.6, ey + 4.3); g.quadraticCurveTo(0, ey + 5, 1.6, ey + 4.3); g.stroke();
+  // cheeks
+  g.fillStyle = "rgba(255,150,120,0.35)";
+  g.beginPath(); g.ellipse(-4.2, ey + 2.4, 1.6, 1, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(4.2, ey + 2.4, 1.6, 1, 0, 0, Math.PI * 2); g.fill();
 
   g.restore();
 }

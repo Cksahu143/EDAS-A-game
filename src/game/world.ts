@@ -665,31 +665,60 @@ function makeBush(seed: number): HTMLCanvasElement {
 }
 
 function makeTree(seed: number): HTMLCanvasElement {
-  const [c, g] = cvs(96, 128);
-  const cx = 48;
-  g.fillStyle = PAL.wood_dark;
-  g.fillRect(cx - 6, 78, 12, 50);
-  g.fillStyle = PAL.wood;
-  g.fillRect(cx - 4, 78, 4, 50);
-  const layers = [
-    { y: 10, w: 34, h: 34, c: PAL.hedge_light },
-    { y: 30, w: 52, h: 38, c: PAL.hedge_mid },
-    { y: 54, w: 66, h: 42, c: PAL.hedge_base },
-  ];
-  for (const layer of layers) {
-    g.fillStyle = layer.c;
+  const [c, g] = cvs(104, 132);
+  const cx = 52;
+  // ground contact shadow baked in (cheap AO, avoids a hard silhouette edge)
+  g.fillStyle = "rgba(0,0,0,0.28)";
+  g.beginPath(); g.ellipse(cx, 122, 26, 7, 0, 0, Math.PI * 2); g.fill();
+  // tapered trunk with bark shading
+  g.fillStyle = shadeGrad2(g, cx - 7, 70, cx + 7, 118, PAL.wood_dark, PAL.wood);
+  g.beginPath();
+  g.moveTo(cx - 7, 118); g.quadraticCurveTo(cx - 8, 90, cx - 4, 70);
+  g.lineTo(cx + 4, 70); g.quadraticCurveTo(cx + 8, 90, cx + 7, 118);
+  g.closePath(); g.fill();
+  g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 1;
+  for (let i = 0; i < 3; i++) {
     g.beginPath();
-    g.moveTo(cx, layer.y);
-    g.lineTo(cx - layer.w / 2, layer.y + layer.h);
-    g.lineTo(cx + layer.w / 2, layer.y + layer.h);
-    g.closePath();
-    g.fill();
-    g.fillStyle = "rgba(255,255,255,0.12)";
-    g.fillRect(cx - layer.w / 5, layer.y + layer.h * 0.52, Math.max(5, layer.w / 4), 3);
+    g.moveTo(cx - 3 + i * 3, 118); g.quadraticCurveTo(cx - 4 + i * 3, 95, cx - 2 + i * 3, 72);
+    g.stroke();
   }
-  g.fillStyle = PAL.hedge_hi;
-  g.fillRect(cx - 2, 16 + (seed % 3), 4, 4);
+  // canopy — three soft round blob clusters (rounder + more organic than
+  // the old flat-triangle pine layers)
+  const clusters = [
+    { x: cx, y: 40, r: 30 },
+    { x: cx - 24, y: 58, r: 24 },
+    { x: cx + 24, y: 56, r: 25 },
+    { x: cx - 6, y: 66, r: 22 },
+  ];
+  for (const cl of clusters) {
+    const grad = g.createRadialGradient(cl.x - cl.r * 0.35, cl.y - cl.r * 0.4, cl.r * 0.15, cl.x, cl.y, cl.r);
+    grad.addColorStop(0, PAL.hedge_hi);
+    grad.addColorStop(0.55, PAL.hedge_mid);
+    grad.addColorStop(1, PAL.hedge_base);
+    g.fillStyle = grad;
+    g.beginPath(); g.arc(cl.x, cl.y, cl.r, 0, Math.PI * 2); g.fill();
+  }
+  // leaf speckle texture on top for painterly detail
+  for (let i = 0; i < 30; i++) {
+    const a = (i / 30) * Math.PI * 2 + seed * 0.5;
+    const r = 14 + (i % 5) * 8;
+    const lx = cx + Math.cos(a) * r * 1.1;
+    const ly = 50 + Math.sin(a) * r * 0.8;
+    g.fillStyle = i % 4 === 0 ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
+    g.beginPath(); g.ellipse(lx, ly, 4, 3, a, 0, Math.PI * 2); g.fill();
+  }
+  // occasional blossom/fruit fleck
+  g.fillStyle = PAL.gold_soft;
+  g.beginPath(); g.arc(cx - 4 + (seed % 3) * 8, 34 + (seed % 2) * 6, 2, 0, Math.PI * 2); g.fill();
   return c;
+}
+
+// Diagonal two-color shading gradient helper for trunk/other elongated shapes.
+function shadeGrad2(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, dark: string, light: string) {
+  const grad = g.createLinearGradient(x0, y0, x1, y1);
+  grad.addColorStop(0, light);
+  grad.addColorStop(1, dark);
+  return grad;
 }
 
 function makeStone(): HTMLCanvasElement {
