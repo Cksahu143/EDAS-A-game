@@ -191,6 +191,21 @@ A half-finished sculpture of a boy, animated but incomplete — missing one arm,
 ### 7.1 NEW — The Second-Read Layer
 Every region now contains **one deliberately small, easy-to-miss piece of Fen's personal history** (per §3.2), separate from its Memory Echo content: a signed blueprint corner in the Cistern, a child's height marked on a doorframe in the Sunken Primer with two sets of initials, a half-erased lesson plan in the Hall of Ever-After dated to "Sprocket's" creation. None of these are quest-gated. They exist purely for players doing a close read, and are catalogued together, only after the credits roll, in an unlockable "Director's Commentary" gallery mode (see §19.1) that rewards exactly the kind of attentive replay this bible is trying to earn.
 
+### 7.2 NEW — A Second Face for Every Region
+The core cast (§6) covers each region's headline character, but several regions were carrying that weight alone. This edition adds one modest, secondary presence to every region that didn't already have one — none of these are meant to rival the headline cast in screen time; they exist so every region feels inhabited on first arrival, not just once a quest starts.
+
+**Grammarwood — Serif & Sans.** Two letterform siblings who bicker constantly and are never seen apart — Serif formal and anxious about looking "proper," Sans loose-limbed and allergic to standing still. Their running argument (readable as a light contrast/style puzzle — which of them can fit through which gap, which one a given sign "trusts") is comic relief for a region that's otherwise about the discomfort of not being able to read something correctly. Neither has a reveal or a sad arc; they're here to be a little annoying and a little beloved, on purpose.
+
+**The Cistern — Plinth.** A small stone drain-guardian shaped like a squat frog, who has forgotten the rhyming password that lets water flow through the region and is deeply, quietly embarrassed about it. The player helps him remember it piece by piece via a simple call-and-response rhyme-matching sequence. Plinth never leaves his plinth (the name is not subtle, and he knows it, and would like it noted that he did not choose it).
+
+**Count's Hollow — Carry.** A small, anxious digit who rides along during long division and lives in constant low-grade fear of being forgotten at the end of a problem. Functions as a nervous, well-meaning sidekick to Nib's quieter sadness (§6.2) — where Nib's arc is about an argument that was never really about the slice, Carry's is smaller still: the simple, repeated reassurance that being carried isn't the same as being a burden.
+
+**Hall of Ever-After — The Substitute.** A loose stack of hall passes and late-arrival forms, animated into something like a person, who has been perpetually "filling in" for a teacher who left decades ago and has, over time, forgotten it isn't really their classroom. Gentler counterweight to Proctor Vale's rule-enforcement comedy (§6.6) — the Substitute doesn't enforce anything, just anxiously tries to keep a lesson going that no one is left to attend, and is quietly relieved rather than devastated when the player tells them, kindly, that it's all right to stop.
+
+**Gallery of Unfinished Things — The Critic.** An unfinished painting of a single eye, mounted crooked, that narrates the Gallery's exhibits in a voice that starts out cutting and gets steadily warmer the longer the player spends actually looking at things rather than rushing past them — a small, mechanical reward for exactly the kind of unhurried attention Pillar IV asks for. Never becomes a full character with a name or a quest; the joke and the warmth are both in the voice alone.
+
+**Archive Spire — Marginalia.** Tiny handwritten notes living in the margins of every book in the Spire, grown faintly sentient from centuries of being read. They speak only in fragments — corrections, asides, the occasional "this part is true" — and become the player's most literal source of hints in the Spire's puzzles. Their existence is the clearest environmental foreshadowing of what happened to CoCo: the Index doesn't just store minds, it's been quietly generating small ones by accident for years.
+
 ---
 
 ## 8. BOSSES — MISCONCEPTIONS GIVEN FORM

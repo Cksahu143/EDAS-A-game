@@ -70,6 +70,19 @@ attentiveness tracker.
   becomes a Ctx-level companion that follows the player at a gentle lag
   across every scene, not just the Primer.
 
+- **Old Wick** (bible §6.4) — Hearth Hollow's lantern-keeper, first
+  character actually in the hub itself. Gruff, warm, idle near the
+  lantern, talks (rotating lines) when the player gets close. His full
+  favor-fetching questline (restoring his own lantern-lighting ability)
+  is not built — this is presence + personality only, same shippable-
+  slice pattern as Half-Page.
+- **Bible expanded (§7.2)** — added one secondary character to every
+  region that didn't already have one (Serif & Sans in Grammarwood,
+  Plinth in the Cistern, Carry in Count's Hollow, the Substitute in the
+  Hall of Ever-After, the Critic in the Gallery, Marginalia in the
+  Archive Spire). None of these are implemented in code yet — this is
+  bible-only, for future sessions to build from.
+
 ## Suggested next slice
 
 Given the gap in scope, the next-highest-value additions (in rough
