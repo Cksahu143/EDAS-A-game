@@ -243,8 +243,66 @@ export function drawEntities(ctx: Ctx, g: CanvasRenderingContext2D) {
     const r = ctx.runner;
     all.push({ y: r.y + 0.5, draw: () => drawRunner(ctx, g, r) });
   }
+  if (ctx.halfPage?.active) {
+    const hp = ctx.halfPage;
+    all.push({ y: hp.y - 4, draw: () => drawHalfPage(g, hp.x, hp.y, hp.ph, ctx.time) });
+  }
   all.sort((a, b) => a.y - b.y);
   for (const it of all) it.draw();
+}
+
+// Half-Page — the physical form of a broken pinky-promise. Per the design
+// bible: must never speak, never gain a face, never become a "system."
+// Just a small, ordinary, slightly-worn folded paper with a frayed pink
+// thread looped around it like a tiny promise ring, drifting quietly.
+function drawHalfPage(g: CanvasRenderingContext2D, x: number, y: number, ph: number, t: number) {
+  const bob = Math.sin(ph * 1.4) * 1.5;
+  const spin = Math.sin(ph * 0.5) * 0.12;
+  g.save();
+  g.translate(x, y - bob - 6);
+  g.rotate(spin);
+
+  // soft paper-white glow — faint, not magical/gold, just "present"
+  g.fillStyle = "rgba(250,240,225,0.14)";
+  g.beginPath(); g.arc(0, 0, 12, 0, Math.PI * 2); g.fill();
+
+  // shadow
+  g.fillStyle = "rgba(0,0,0,0.2)";
+  g.beginPath(); g.ellipse(0.5, 8 + bob, 5, 1.6, 0, 0, Math.PI * 2); g.fill();
+
+  // the folded half-page itself — worn cream paper, torn top edge
+  const grad = g.createLinearGradient(-5, -6, 5, 6);
+  grad.addColorStop(0, "#f2e8d0");
+  grad.addColorStop(1, "#d8c9a4");
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(-5, -6);
+  g.lineTo(-3, -7); g.lineTo(-1, -5.6); g.lineTo(1.5, -7); g.lineTo(5, -6);
+  g.lineTo(5, 5.5);
+  g.quadraticCurveTo(0, 7, -5, 5.5);
+  g.closePath(); g.fill();
+  g.strokeStyle = "rgba(120,100,70,0.4)"; g.lineWidth = 0.6;
+  g.stroke();
+  // faint ruled lines — it's a page, unmistakably
+  g.strokeStyle = "rgba(120,100,70,0.25)"; g.lineWidth = 0.5;
+  for (let i = 0; i < 3; i++) {
+    g.beginPath(); g.moveTo(-3.5, -2 + i * 3); g.lineTo(3.5, -2 + i * 3); g.stroke();
+  }
+
+  // the frayed pink thread — the broken pinky-promise, its only motif
+  g.strokeStyle = "rgba(230,150,170,0.85)"; g.lineWidth = 0.9;
+  g.beginPath();
+  g.moveTo(-4.5, -1); g.quadraticCurveTo(0, -4, 4.5, -1);
+  g.stroke();
+  g.beginPath();
+  g.moveTo(-4.5, -1); g.quadraticCurveTo(0, 2, 4.5, -1);
+  g.stroke();
+  // the loose, unfinished end of the thread — it was never tied off
+  g.beginPath();
+  g.moveTo(4.5, -1); g.quadraticCurveTo(6.5, 0.5, 6, 3 + Math.sin(t * 2) * 0.6);
+  g.stroke();
+
+  g.restore();
 }
 
 function drawRunner(ctx: Ctx, g: CanvasRenderingContext2D, r: NonNullable<Ctx["runner"]>) {

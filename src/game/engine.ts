@@ -99,6 +99,10 @@ export interface Ctx {
   suspense: number;
   frame: number;
   fragments?: string[];
+  // Half-Page — a small silent companion found in the Sunken Primer.
+  // Lives at the Ctx level (not scene-local) because per the design
+  // bible it follows the player across every scene once found.
+  halfPage?: { x: number; y: number; active: boolean; ph: number };
 }
 
 export type GameState =
@@ -266,6 +270,7 @@ export function startEdas(canvas: HTMLCanvasElement, ui: HTMLElement): () => voi
     runner: undefined,
     suspense: 0,
     frame: 0,
+    halfPage: { x: 0, y: 0, active: false, ph: 0 },
   };
 
   // ---- resize ---------------------------------------------------------
@@ -521,6 +526,17 @@ function update(ctx: Ctx) {
   camera.zoom = smoothDamp(camera.zoom, camera.targetZoom, dt, 0.4);
   camera.shake *= Math.pow(0.001, dt);
   if (camera.shake < 0.02) camera.shake = 0;
+
+  // Half-Page follows at a gentle lag, trailing behind the player's facing
+  // direction — no pathing, no collision, just a quiet presence.
+  if (ctx.halfPage?.active) {
+    const hp = ctx.halfPage;
+    hp.ph += dt;
+    const targetX = ctx.player.x - ctx.player.facingLerp * 26;
+    const targetY = ctx.player.y - 6 + Math.sin(hp.ph * 1.4) * 3;
+    hp.x = lerp(hp.x, targetX, 1 - Math.pow(0.0008, dt));
+    hp.y = lerp(hp.y, targetY, 1 - Math.pow(0.0008, dt));
+  }
 
   // Walk bob
   const moving = Math.abs(ctx.input.x) > 0.05 || Math.abs(ctx.input.y) > 0.05;

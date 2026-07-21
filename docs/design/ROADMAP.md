@@ -62,6 +62,14 @@ Archivist fight, Time Weave and other named abilities, the six full
 regions, Memory Echoes, the save/lantern system, endings, and the hidden
 attentiveness tracker.
 
+- **Half-Page** (bible §6.7) — the ensemble's quietest character: a small,
+  silent, ordinary object (the physical form of a broken pinky-promise)
+  found tucked in a far corner of the Sunken Primer. Deliberately no
+  glow/sparkle hint (unlike Bram's period), no face, no dialogue, no
+  quest structure — per the bible's explicit design note. Once found it
+  becomes a Ctx-level companion that follows the player at a gentle lag
+  across every scene, not just the Primer.
+
 ## Suggested next slice
 
 Given the gap in scope, the next-highest-value additions (in rough

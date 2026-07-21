@@ -53,6 +53,7 @@ export interface PrimerState {
   period: PeriodItem;
   pageDrifts: { x: number; y: number; r: number; ph: number }[];
   returnPoint: { x: number; y: number };
+  halfPageSpot: { x: number; y: number; found: boolean };
 }
 
 export function buildPrimer(): PrimerState {
@@ -81,6 +82,9 @@ export function buildPrimer(): PrimerState {
     period,
     pageDrifts,
     returnPoint: { x: 80, y: groundY - 10 },
+    // Tucked in the far corner, past Bram — deliberately easy to miss,
+    // per the design bible's "hidden, environmentally-clued" note.
+    halfPageSpot: { x: SP_W - 120, y: groundY + 4, found: false },
   };
 }
 
@@ -127,6 +131,19 @@ export function updatePrimer(ctx: Ctx) {
   if (b.justFinished) {
     b.finishedT -= dt;
     if (b.finishedT <= 0) b.justFinished = false;
+  }
+
+  // Half-Page — found by walking near, no keypress, no fanfare. Once
+  // found it becomes a permanent Ctx-level companion (see engine.ts)
+  // that quietly follows the player everywhere from here on.
+  if (!ps.halfPageSpot.found && dist(ctx.player.x, ctx.player.y, ps.halfPageSpot.x, ps.halfPageSpot.y) < 40) {
+    ps.halfPageSpot.found = true;
+    if (ctx.halfPage) {
+      ctx.halfPage.active = true;
+      ctx.halfPage.x = ps.halfPageSpot.x;
+      ctx.halfPage.y = ps.halfPageSpot.y;
+    }
+    void sayLine(ctx, "Something small and quiet decides to follow you.", 3200, true);
   }
 }
 
@@ -187,6 +204,22 @@ export function drawPrimer(ctx: Ctx, g: CanvasRenderingContext2D, layer: "sky" |
     }
 
     drawBram(ctx, g, ps.bram, t);
+
+    // Half-Page's hiding spot — a small worn paper corner peeking out,
+    // easy to miss (intentionally no glow/sparkle, unlike the period)
+    if (!ps.halfPageSpot.found) {
+      const hs = ps.halfPageSpot;
+      g.save();
+      g.translate(hs.x, hs.y);
+      g.rotate(-0.3);
+      g.fillStyle = "#e8dcc0";
+      g.beginPath();
+      g.moveTo(0, 0); g.lineTo(8, -2); g.lineTo(9, 4); g.lineTo(1, 6);
+      g.closePath(); g.fill();
+      g.strokeStyle = "rgba(120,100,70,0.3)"; g.lineWidth = 0.5;
+      g.stroke();
+      g.restore();
+    }
     return;
   }
 }
