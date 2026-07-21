@@ -12,7 +12,7 @@
 import type { Ctx } from "./engine";
 import { rand, lerp, dist } from "./engine";
 
-export const HH_W = 1000;
+export const HH_W = 2600;
 export const HH_H = 700;
 
 const HPAL = {
@@ -39,7 +39,7 @@ const WICK_LINES = [
 export interface HearthDoor {
   x: number; y: number;
   label: string;
-  target: "garden" | "primer";
+  target: string; // "garden" | "primer" | a REGION_CONFIGS key
 }
 
 export interface OldWick {
@@ -64,15 +64,22 @@ export function buildHearth(): HearthState {
   const groundY = HH_H - 180;
   const lantern = { x: HH_W / 2, y: groundY - 220 };
   const oldWick: OldWick = {
-    x: HH_W / 2 - 90, y: groundY - 10,
+    x: HH_W / 2 - 40, y: groundY - 10,
     facing: 1, talk: false, talkT: 0, lineIdx: 0, ph: 0,
   };
+  // 8 doors spread evenly across the widened hub, lantern at the center.
   const doors: HearthDoor[] = [
-    { x: HH_W - 120, y: groundY - 40, label: "Garden of Forgotten Numbers", target: "garden" },
-    { x: 120, y: groundY - 40, label: "The Sunken Primer", target: "primer" },
+    { x: 160, y: groundY - 40, label: "The Sunken Primer", target: "primer" },
+    { x: 480, y: groundY - 40, label: "Count's Hollow", target: "counts_hollow" },
+    { x: 800, y: groundY - 40, label: "Grammarwood", target: "grammarwood" },
+    { x: 1120, y: groundY - 40, label: "The Cistern", target: "cistern" },
+    { x: 1480, y: groundY - 40, label: "Garden of Forgotten Numbers", target: "garden" },
+    { x: 1800, y: groundY - 40, label: "Hall of Ever-After", target: "hall_of_everafter" },
+    { x: 2120, y: groundY - 40, label: "Gallery of Unfinished Things", target: "gallery" },
+    { x: 2440, y: groundY - 40, label: "Archive Spire", target: "archive_spire" },
   ];
   const motes: HearthState["motes"] = [];
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 30; i++) {
     motes.push({ x: rand(100, HH_W - 100), y: rand(groundY - 260, groundY), s: rand(0.8, 1.8), ph: rand(0, 7) });
   }
   return {

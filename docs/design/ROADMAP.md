@@ -83,6 +83,29 @@ attentiveness tracker.
   Archive Spire). None of these are implemented in code yet — this is
   bible-only, for future sessions to build from.
 
+- **All 6 remaining regions implemented** — Count's Hollow, Grammarwood,
+  The Cistern, Hall of Ever-After, Gallery of Unfinished Things, and
+  Archive Spire are all now real playable scenes, reachable from Hearth
+  Hollow (which now has 8 doors total). Built through a shared generic
+  region engine (`regions.ts` + `regionConfigs.ts`) rather than six
+  bespoke files, so every region gets its own palette, floating thematic
+  decor (numbers in Count's Hollow, letters in Grammarwood, water motes
+  in the Cistern, etc.), and its bible-described cast:
+  - Count's Hollow: Nib + Carry
+  - Grammarwood: Serif + Sans
+  - The Cistern: Plinth
+  - Hall of Ever-After: The Understudy + The Substitute
+  - Gallery of Unfinished Things: Milo + The Critic
+  - Archive Spire: Marginalia
+  Characters use a shared simple creature rig (not the full Bram/Old
+  Wick treatment) with idle pacing, proximity talk bubbles, and 2-4
+  rotating lines each — a deliberate scope trade so all six regions
+  could ship in one pass instead of one bespoke region taking the same
+  amount of effort as all six combined. Puzzle/quest logic per region
+  (the actual "find the rhyme," "settle the argument," etc. gameplay)
+  is not built — this is presence + exploration only, same pattern as
+  every other region so far.
+
 ## Suggested next slice
 
 Given the gap in scope, the next-highest-value additions (in rough

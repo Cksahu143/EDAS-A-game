@@ -165,6 +165,10 @@ export function updatePlayer(ctx: Ctx) {
       const ps = ctx.primer;
       p.x = clamp(p.x, 60, ps.bounds.w - 60);
       p.y = clamp(p.y, ps.groundY - 20, ps.bounds.h - 60);
+    } else if (ctx.scene === "region" && ctx.region) {
+      const rs = ctx.region;
+      p.x = clamp(p.x, 60, rs.config.width - 60);
+      p.y = clamp(p.y, rs.config.groundY - 20, rs.config.height - 60);
     }
     if (input.x < -0.15) p.facing = -1;
     else if (input.x > 0.15) p.facing = 1;

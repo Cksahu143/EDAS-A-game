@@ -21,6 +21,8 @@ import { startFall, updateFall, drawFall, type FallState } from "./fall";
 import { buildGarden, drawGarden, drawGardenOverlay, updateGarden, type GardenState } from "./garden";
 import { buildHearth, drawHearth, drawHearthOverlay, updateHearth, type HearthState } from "./hearth";
 import { buildPrimer, drawPrimer, drawPrimerOverlay, updatePrimer, type PrimerState } from "./primer";
+import { buildRegion, drawRegion, drawRegionOverlay, updateRegion, type RegionState } from "./regions";
+import { REGION_CONFIGS } from "./regionConfigs";
 
 // ---------- utilities ---------------------------------------------------
 export const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -89,11 +91,12 @@ export interface Ctx {
   story: StoryController;
   state: GameState;
   offscreen: OffscreenBuffers;
-  scene: "surface" | "underground" | "garden" | "hearth" | "primer";
+  scene: "surface" | "underground" | "garden" | "hearth" | "primer" | "region";
   underground?: UndergroundState;
   garden?: GardenState;
   hearth?: HearthState;
   primer?: PrimerState;
+  region?: RegionState;
   fall?: FallState;
   runner?: RunnerState;
   suspense: number;
@@ -193,6 +196,32 @@ export function enterHearth(ctx: Ctx) {
   ctx.camera.targetX = hs.playerStart.x;
   ctx.camera.targetY = hs.playerStart.y;
   ctx.camera.targetZoom = 1.0;
+  ctx.camera.shake = 0;
+}
+
+/**
+ * Transition into one of the six generic regions (Count's Hollow,
+ * Grammarwood, The Cistern, Hall of Ever-After, Gallery of Unfinished
+ * Things, Archive Spire), looked up by id from REGION_CONFIGS.
+ */
+export function enterRegion(ctx: Ctx, id: string) {
+  const config = REGION_CONFIGS[id];
+  if (!config) { console.error(`Unknown region id: ${id}`); return; }
+  const rs = buildRegion(config);
+  ctx.region = rs;
+  ctx.scene = "region";
+  ctx.player.x = rs.playerStart.x;
+  ctx.player.y = rs.playerStart.y;
+  ctx.player.pose = "stand";
+  ctx.player.poseT = 0;
+  ctx.player.facing = 1;
+  ctx.player.facingLerp = 1;
+  ctx.camera.manual = false;
+  ctx.camera.x = rs.playerStart.x;
+  ctx.camera.y = rs.playerStart.y;
+  ctx.camera.targetX = rs.playerStart.x;
+  ctx.camera.targetY = rs.playerStart.y;
+  ctx.camera.targetZoom = 0.95;
   ctx.camera.shake = 0;
 }
 
@@ -446,6 +475,8 @@ function update(ctx: Ctx) {
     updateHearth(ctx);
   } else if (ctx.scene === "primer") {
     updatePrimer(ctx);
+  } else if (ctx.scene === "region") {
+    updateRegion(ctx);
   }
 
   // fall sequence owns update while falling
@@ -491,7 +522,8 @@ function update(ctx: Ctx) {
         for (const d of hs.doors) {
           if (dist(ctx.player.x, ctx.player.y, d.x, d.y) < 90) {
             if (d.target === "garden") enterGarden(ctx);
-            else enterPrimer(ctx);
+            else if (d.target === "primer") enterPrimer(ctx);
+            else enterRegion(ctx, d.target);
             break;
           }
         }
@@ -504,6 +536,11 @@ function update(ctx: Ctx) {
     } else if (ctx.scene === "primer") {
       const ps = ctx.primer;
       if (ps && ctx.input.interactEdge && dist(ctx.player.x, ctx.player.y, ps.returnPoint.x, ps.returnPoint.y) < 70) {
+        enterHearth(ctx);
+      }
+    } else if (ctx.scene === "region") {
+      const rs = ctx.region;
+      if (rs && ctx.input.interactEdge && dist(ctx.player.x, ctx.player.y, rs.returnPoint.x, rs.returnPoint.y) < 70) {
         enterHearth(ctx);
       }
     }
@@ -583,8 +620,10 @@ function render(ctx: Ctx) {
     drawGarden(ctx, sceneG, "sky");
   } else if (ctx.scene === "hearth") {
     drawHearth(ctx, sceneG, "sky");
-  } else {
+  } else if (ctx.scene === "primer") {
     drawPrimer(ctx, sceneG, "sky");
+  } else {
+    drawRegion(ctx, sceneG, "sky");
   }
 
   // === world layer (camera space) ===
@@ -614,9 +653,13 @@ function render(ctx: Ctx) {
     drawHearth(ctx, sceneG, "ground");
     drawHearth(ctx, sceneG, "midground");
     drawEntities(ctx, sceneG);
-  } else {
+  } else if (ctx.scene === "primer") {
     drawPrimer(ctx, sceneG, "ground");
     drawPrimer(ctx, sceneG, "midground");
+    drawEntities(ctx, sceneG);
+  } else {
+    drawRegion(ctx, sceneG, "ground");
+    drawRegion(ctx, sceneG, "midground");
     drawEntities(ctx, sceneG);
   }
 
@@ -627,7 +670,8 @@ function render(ctx: Ctx) {
   else if (ctx.scene === "underground") drawUndergroundOverlay(ctx, sceneG);
   else if (ctx.scene === "garden") drawGardenOverlay(ctx, sceneG);
   else if (ctx.scene === "hearth") drawHearthOverlay(ctx, sceneG);
-  else drawPrimerOverlay(ctx, sceneG);
+  else if (ctx.scene === "primer") drawPrimerOverlay(ctx, sceneG);
+  else drawRegionOverlay(ctx, sceneG);
 
   // === post FX to main canvas ===
   g.clearRect(0, 0, w, h);
