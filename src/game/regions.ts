@@ -249,10 +249,27 @@ function drawCharacterCreature(g: CanvasRenderingContext2D, c: RegionCharacter, 
   }
 }
 
+function shadeGradC(hex: string, amt: number): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const r = Math.max(0, Math.min(255, parseInt(h.slice(0, 2), 16) + amt));
+  const g2 = Math.max(0, Math.min(255, parseInt(h.slice(2, 4), 16) + amt));
+  const b = Math.max(0, Math.min(255, parseInt(h.slice(4, 6), 16) + amt));
+  return `rgb(${r},${g2},${b})`;
+}
+
 function drawCreature(g: CanvasRenderingContext2D, kind: CreatureKind, color: string, t: number) {
   switch (kind) {
     case "letter_serif": {
-      // bold "A" with serif foot-flares — anxious, upright posture
+      // bold "A" body with little legs/feet underneath — reads as a
+      // character standing, not a floating glyph symbol
+      g.fillStyle = "rgba(0,0,0,0.25)";
+      g.beginPath(); g.ellipse(0, 15, 9, 2.4, 0, 0, Math.PI * 2); g.fill();
+      // tiny legs
+      g.strokeStyle = shadeGradC(color, -30); g.lineWidth = 2.6; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-4, 10); g.lineTo(-5, 14); g.stroke();
+      g.beginPath(); g.moveTo(4, 10); g.lineTo(5, 14); g.stroke();
+      // bold "A" torso/body
       g.strokeStyle = color; g.lineWidth = 6; g.lineCap = "round"; g.lineJoin = "round";
       g.beginPath();
       g.moveTo(-8, 10); g.lineTo(0, -12); g.lineTo(8, 10);
@@ -264,9 +281,14 @@ function drawCreature(g: CanvasRenderingContext2D, kind: CreatureKind, color: st
       break;
     }
     case "letter_sans": {
-      // rounded, loose sans "a" blob — casual, always mid-lean
+      // rounded, loose sans "a" blob body, sitting low with stub feet
+      g.fillStyle = "rgba(0,0,0,0.25)";
+      g.beginPath(); g.ellipse(0, 13, 9, 2.4, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = shadeGradC(color, -25);
+      g.beginPath(); g.ellipse(-4, 10, 2.4, 1.6, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(4, 10, 2.4, 1.6, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = color;
-      g.beginPath(); g.ellipse(0, 2, 8, 9, 0.15, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(0, 2, 9, 10, 0.15, 0, Math.PI * 2); g.fill();
       g.fillStyle = "rgba(255,255,255,0.9)";
       g.beginPath(); g.ellipse(3, 3, 3, 4, 0.15, 0, Math.PI * 2); g.fill();
       drawFace(g, -2, 0, color, t, "playful");
@@ -286,7 +308,12 @@ function drawCreature(g: CanvasRenderingContext2D, kind: CreatureKind, color: st
       break;
     }
     case "digit": {
-      // small round "3"-shaped worried digit
+      // small round "3"-shaped worried digit, with tiny feet
+      g.fillStyle = "rgba(0,0,0,0.25)";
+      g.beginPath(); g.ellipse(0, 13, 7, 2, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = shadeGradC(color, -25);
+      g.beginPath(); g.ellipse(-3, 10, 2, 1.4, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(3, 10, 2, 1.4, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = color;
       g.beginPath(); g.ellipse(0, 0, 8, 10, 0, 0, Math.PI * 2); g.fill();
       g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 1.4;
@@ -295,7 +322,10 @@ function drawCreature(g: CanvasRenderingContext2D, kind: CreatureKind, color: st
       break;
     }
     case "papers": {
-      // stack of hall-pass papers with a face on top
+      // stack of hall-pass papers, propped with a tiny visible base so it
+      // reads as sitting on the ground rather than floating
+      g.fillStyle = "rgba(0,0,0,0.2)";
+      g.beginPath(); g.ellipse(0, 11, 10, 2.4, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = "#e8dcc0";
       for (let i = 0; i < 3; i++) {
         g.save(); g.rotate((i - 1) * 0.06);

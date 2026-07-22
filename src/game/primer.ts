@@ -236,6 +236,16 @@ function drawBram(ctx: Ctx, g: CanvasRenderingContext2D, b: BramState, t: number
   g.scale(fx, 1);
 
   const wobble = b.paused ? 0 : Math.sin(t * 4) * 4;
+  // contact shadow along the ribbon's path — this is what was missing;
+  // without it the ribbon reads as a floating line rather than a body
+  // resting on the ground.
+  g.strokeStyle = "rgba(0,0,0,0.25)";
+  g.lineWidth = 12;
+  g.beginPath();
+  g.moveTo(-70, 16 + wobble * 0.4);
+  g.quadraticCurveTo(-30, 8 + wobble, 10, 14);
+  g.quadraticCurveTo(30, 22, 40, 12);
+  g.stroke();
   g.strokeStyle = "#3a5a8a";
   g.lineWidth = 10;
   g.lineCap = "round";
@@ -250,6 +260,14 @@ function drawBram(ctx: Ctx, g: CanvasRenderingContext2D, b: BramState, t: number
   g.moveTo(-70, 6 + wobble * 0.4);
   g.quadraticCurveTo(-30, -10 + wobble, 10, 4);
   g.quadraticCurveTo(30, 14, 40, 2);
+  g.stroke();
+  // a bright top-edge highlight so the ribbon reads as rounded/tubular
+  // rather than a flat stroke
+  g.strokeStyle = "rgba(255,255,255,0.25)";
+  g.lineWidth = 2;
+  g.beginPath();
+  g.moveTo(-68, 3 + wobble * 0.4);
+  g.quadraticCurveTo(-30, -13 + wobble, 8, 1);
   g.stroke();
 
   const hx = 42, hy = 2;
