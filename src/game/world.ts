@@ -697,6 +697,11 @@ function makeTree(seed: number): HTMLCanvasElement {
     grad.addColorStop(1, PAL.hedge_base);
     g.fillStyle = grad;
     g.beginPath(); g.arc(cl.x, cl.y, cl.r, 0, Math.PI * 2); g.fill();
+    // dark rim so each clump reads as a distinct foliage mass instead of
+    // blending into a single soft cloud
+    g.strokeStyle = "rgba(10,20,12,0.35)";
+    g.lineWidth = 1.4;
+    g.beginPath(); g.arc(cl.x, cl.y, cl.r - 0.7, 0, Math.PI * 2); g.stroke();
   }
   // leaf speckle texture on top for painterly detail
   for (let i = 0; i < 30; i++) {
