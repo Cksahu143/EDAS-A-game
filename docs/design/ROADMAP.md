@@ -106,6 +106,23 @@ attentiveness tracker.
   is not built — this is presence + exploration only, same pattern as
   every other region so far.
 
+- **Kneel/dangle pose fixes** — rendered both to PNG and found real
+  issues: dangle's legs were rendered at 0.55 alpha, making them look
+  ghostly/disconnected rather than part of the body (bumped to 0.82);
+  kneel's reaching arm stopped short of the ground plane, leaving the
+  hand visibly floating (extended it to actually touch down, added a
+  hand and a small ground-contact shadow).
+- **Region background architecture** — every region previously had
+  identical "ground + sky + floating glyphs" set dressing with nothing
+  differentiating the space itself. Added a `bgShape` per region
+  (arches for Count's Hollow, mossy pillars for Grammarwood, dripping
+  stalactite pipes for the Cistern, empty picture frames for the
+  Gallery, tall bookshelves for the Archive Spire, ghostly columns for
+  the Hall of Ever-After) drawn as a background silhouette layer —
+  cheap (a handful of shapes, no sprite caching needed) but the
+  single biggest lever for making each region feel like a distinct
+  place rather than the same room recolored.
+
 ## Suggested next slice
 
 Given the gap in scope, the next-highest-value additions (in rough

@@ -14,6 +14,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#3a2c1a", skyBottom: "#1c140c",
     groundTop: "#4a3218", groundBottom: "#2a1c0e",
     accent: "#e8c07a",
+    bgShape: "arches",
     glyphs: ["7", "3", "÷", "9", "+", "1/2"],
     introLine: "Somewhere nearby, a very old argument about a slice of pie is still going.",
     characters: [
@@ -47,6 +48,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#1a3226", skyBottom: "#0e1c16",
     groundTop: "#234a34", groundBottom: "#122a1e",
     accent: "#8fd6a8",
+    bgShape: "pillars",
     glyphs: ["A", "&", "?", "!", "B", "Q"],
     introLine: "Two voices argue somewhere in the trees — inseparable, and never quite agreeing.",
     characters: [
@@ -79,6 +81,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#16283a", skyBottom: "#0a141e",
     groundTop: "#1e3a4e", groundBottom: "#0e1c28",
     accent: "#7ec9e8",
+    bgShape: "pipes",
     glyphs: ["~", "○", "◦", "≈"],
     introLine: "Water drips somewhere in the dark, waiting on a password no one remembers.",
     characters: [
@@ -103,6 +106,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#241a30", skyBottom: "#120c1a",
     groundTop: "#3a2840", groundBottom: "#1a1220",
     accent: "#c9a0e0",
+    bgShape: "trees",
     glyphs: ["✦", "◇", "…"],
     introLine: "The same five minutes, over and over — somewhere down the hall, someone is still waiting for class to start.",
     characters: [
@@ -135,6 +139,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#2c2418", skyBottom: "#16120c",
     groundTop: "#3a3020", groundBottom: "#1c180e",
     accent: "#e8c878",
+    bgShape: "frames",
     glyphs: ["◻", "◽", "▭"],
     introLine: "Half-finished paintings line the walls, watching you walk in.",
     characters: [
@@ -167,6 +172,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     skyTop: "#0e0a20", skyBottom: "#050310",
     groundTop: "#1a1430", groundBottom: "#0a081a",
     accent: "#a898ff",
+    bgShape: "shelves",
     glyphs: ["*", "✧", "·"],
     introLine: "Every book here has something written in the margins. None of it was there when the books were new.",
     characters: [

@@ -508,9 +508,15 @@ function drawCharacter(
     g.fillStyle = o.accent;
     g.beginPath(); g.arc(0, 1, 0.9, 0, Math.PI * 2); g.fill();
     g.beginPath(); g.arc(0, 4, 0.9, 0, Math.PI * 2); g.fill();
-    // reaching arm
-    limb(g, 4, -1, 9, 5, 3.4, o.shirt);
-    limb(g, 9, 5, 10.5, 10, 3, o.skin);
+    // reaching arm — extended so the hand actually touches the ground
+    // plane instead of floating just above it
+    limb(g, 4, -1, 9, 6, 3.4, o.shirt);
+    limb(g, 9, 6, 11, 12.5, 3, o.skin);
+    g.fillStyle = o.skin;
+    g.beginPath(); g.arc(11, 12.5, 2, 0, Math.PI * 2); g.fill();
+    // small contact shadow where her hand meets the ground
+    g.fillStyle = "rgba(0,0,0,0.25)";
+    g.beginPath(); g.ellipse(11, 14, 3, 1.2, 0, 0, Math.PI * 2); g.fill();
     // head
     const hy = -10;
     drawHead(g, 0, hy, o, 0, "down");
@@ -721,7 +727,7 @@ function drawDangle(g: CanvasRenderingContext2D, p: Player, time: number) {
   g.scale(PLAYER_DRAW_SCALE * ss.sx, PLAYER_DRAW_SCALE * ss.sy);
 
   g.save();
-  g.globalAlpha = 0.55;
+  g.globalAlpha = 0.82;
   g.fillStyle = o.pants;
   g.save(); g.translate(-3, 6); g.rotate(kick * 0.4); g.fillRect(-2, 0, 4, 18); g.restore();
   g.save(); g.translate(3, 6); g.rotate(-kick * 0.4); g.fillRect(-2, 0, 4, 18); g.restore();

@@ -39,6 +39,7 @@ export interface RegionConfig {
   groundTop: string; groundBottom: string;
   accent: string;
   glyphs: string[]; // floating thematic decor, e.g. ["7","3","÷"]
+  bgShape: "arches" | "shelves" | "pillars" | "frames" | "pipes" | "trees";
   characters: RegionCharacterConfig[];
   introLine: string;
 }
@@ -170,6 +171,7 @@ export function drawRegion(ctx: Ctx, g: CanvasRenderingContext2D, layer: "sky" |
   }
 
   if (layer === "midground") {
+    drawBgShape(g, cfg, t);
     // floating thematic glyphs
     for (const m of rs.motes) {
       const a = 0.35 + Math.sin(t * 1.5 + m.ph) * 0.2;
@@ -184,6 +186,83 @@ export function drawRegion(ctx: Ctx, g: CanvasRenderingContext2D, layer: "sky" |
     for (const c of rs.characters) drawCharacterCreature(g, c, t);
     return;
   }
+}
+
+// Background architectural silhouettes — cheap (a handful of shapes,
+// no sprite cache needed) but the single biggest lever for making each
+// region feel distinct rather than "same room, different color."
+function drawBgShape(g: CanvasRenderingContext2D, cfg: RegionConfig, t: number) {
+  const w = cfg.width, gy = cfg.groundY;
+  g.save();
+  g.globalAlpha = 0.5;
+  g.fillStyle = cfg.accent;
+  switch (cfg.bgShape) {
+    case "arches": {
+      // Count's Hollow — stone arches marching into the distance
+      for (let i = 0; i < 5; i++) {
+        const x = 80 + i * (w / 5);
+        g.beginPath();
+        g.moveTo(x, gy - 10);
+        g.quadraticCurveTo(x + 30, gy - 140, x + 60, gy - 10);
+        g.lineTo(x + 45, gy - 10);
+        g.quadraticCurveTo(x + 30, gy - 110, x + 15, gy - 10);
+        g.closePath(); g.fill();
+      }
+      break;
+    }
+    case "shelves": {
+      // Archive Spire — tall bookshelves receding into darkness
+      for (let i = 0; i < 6; i++) {
+        const x = 60 + i * (w / 6);
+        g.fillRect(x, gy - 220, 14, 220);
+        for (let s = 0; s < 5; s++) {
+          g.fillStyle = "rgba(0,0,0,0.3)";
+          g.fillRect(x + 2, gy - 200 + s * 38, 10, 4);
+          g.fillStyle = cfg.accent;
+        }
+      }
+      break;
+    }
+    case "pillars": {
+      // Grammarwood — thick mossy tree pillars
+      for (let i = 0; i < 6; i++) {
+        const x = 60 + i * (w / 6) + Math.sin(i) * 20;
+        g.beginPath();
+        g.ellipse(x, gy - 100, 16, 110, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+      break;
+    }
+    case "frames": {
+      // Gallery of Unfinished Things — empty picture frames on the wall
+      for (let i = 0; i < 5; i++) {
+        const x = 100 + i * (w / 5);
+        g.strokeStyle = cfg.accent; g.lineWidth = 5;
+        g.strokeRect(x, gy - 220, 70, 90);
+      }
+      break;
+    }
+    case "pipes": {
+      // The Cistern — dripping stone pipes/stalactites from the ceiling
+      for (let i = 0; i < 8; i++) {
+        const x = 40 + i * (w / 8);
+        const len = 60 + (i % 3) * 30;
+        g.beginPath();
+        g.moveTo(x, 0); g.lineTo(x + 14, 0); g.lineTo(x + 7, len);
+        g.closePath(); g.fill();
+      }
+      break;
+    }
+    case "trees": {
+      // fallback / Hall of Ever-After — tall thin ghostly columns
+      for (let i = 0; i < 7; i++) {
+        const x = 50 + i * (w / 7);
+        g.fillRect(x, gy - 240, 8, 240);
+      }
+      break;
+    }
+  }
+  g.restore();
 }
 
 export function drawRegionOverlay(ctx: Ctx, g: CanvasRenderingContext2D) {
