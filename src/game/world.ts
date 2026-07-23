@@ -423,6 +423,22 @@ function drawHatch(ctx: Ctx, g: CanvasRenderingContext2D) {
     g.fillStyle = glow;
     g.fillRect(h.x - r, h.y - r, r * 2, r * 2);
   }
+  if (!h.revealed) {
+    // Not yet discovered — per the story, the grass hasn't parted yet.
+    // Previously the full stone slab sprite was drawn here regardless,
+    // meaning a hard-edged grey object sat visibly in the middle of the
+    // grass field from the very start of the game. Now: nothing but a
+    // faint, irregular patch of duller/flattened grass, only visible
+    // within a few steps — no discrete shape, no object silhouette.
+    if (near) {
+      const t = 1 - clamp(d / 90, 0, 1);
+      g.fillStyle = `rgba(60, 70, 40, ${0.18 * t})`;
+      g.beginPath();
+      g.ellipse(h.x, h.y, 34, 14, 0, 0, Math.PI * 2);
+      g.fill();
+    }
+    return;
+  }
   g.drawImage(ctx.world.sprites.hatchSprite,
     h.x - ctx.world.sprites.hatchSprite.width / 2,
     h.y - ctx.world.sprites.hatchSprite.height / 2);
