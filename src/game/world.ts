@@ -141,15 +141,17 @@ export function buildWorld(): World {
     });
   }
   const hatch: Hatch = { x: 1980, y: 400, r: 60, found: false, revealed: false };
-  const gx0 = 1200, gy0 = 1450;
-  for (let i = 0; i < 26; i++) {
-    const t = i / 25;
-    const px = lerp(gx0, hatch.x, t) + Math.sin(t * 3) * 60 * (1 - t);
-    const py = lerp(gy0, hatch.y, t) + Math.cos(t * 2.4) * 40 * (1 - t) - t * 60;
+  // A handful of ordinary flowers scattered near the hatch's corner of
+  // the maze — NOT a guided trail leading to it. The old version laid
+  // 26 flowers along a deliberate curved path from spawn straight to
+  // the hatch, which was effectively an arrow pointing at the "secret."
+  // Scattering them randomly in the general area keeps that corner from
+  // looking suspiciously empty without giving away exactly where to go.
+  for (let i = 0; i < 14; i++) {
     flowers.push({
-      x: px + rand(-8, 8), y: py + rand(-6, 6),
-      c: t > 0.6 ? PAL.gold_soft : (Math.random() < 0.5 ? PAL.gold : "#f8e6a3"),
-      s: rand(4, 6),
+      x: hatch.x + rand(-260, 260), y: hatch.y + rand(-220, 260),
+      c: flowerCols[Math.floor(rand(0, flowerCols.length))],
+      s: rand(3, 6),
       seed: 500 + i,
     });
   }
@@ -403,43 +405,20 @@ function drawStonePath(ctx: Ctx, g: CanvasRenderingContext2D) {
 function drawHatch(ctx: Ctx, g: CanvasRenderingContext2D) {
   const h = ctx.world.hatch;
   const d = Math.hypot(ctx.player.x - h.x, ctx.player.y - h.y);
-  const near = d < 240;
   const time = ctx.time;
   const pulse = 0.75 + Math.sin(time * 2.2) * 0.25;
-  if (!h.found) {
-    const pillarH = 620;
-    const pillar = g.createLinearGradient(h.x, h.y - pillarH, h.x, h.y);
-    pillar.addColorStop(0, "rgba(255, 220, 150, 0)");
-    pillar.addColorStop(0.6, `rgba(255, 220, 150, ${0.18 * pulse})`);
-    pillar.addColorStop(1, `rgba(255, 200, 120, ${0.42 * pulse})`);
-    g.fillStyle = pillar;
-    g.beginPath();
-    g.moveTo(h.x - 10, h.y);
-    g.lineTo(h.x + 10, h.y);
-    g.lineTo(h.x + 40, h.y - pillarH);
-    g.lineTo(h.x - 40, h.y - pillarH);
-    g.closePath();
-    g.fill();
-    const r = 130 + pulse * 20;
+  // No far-visible beacon — this is meant to be a secret, easy to miss
+  // until you're standing right over it. The old version had a 620px
+  // glowing pillar plus a wide ambient halo visible from almost
+  // anywhere on the map, which made it impossible to actually stumble
+  // upon; the suspense/vignette system (ctx.suspense, see fx.ts)
+  // already carries the "something's wrong" cue at range.
+  const near = d < 90;
+  if (near && !h.found) {
+    const t = 1 - clamp(d / 90, 0, 1);
+    const r = 30 + t * 18;
     const glow = g.createRadialGradient(h.x, h.y, 0, h.x, h.y, r);
-    glow.addColorStop(0, `rgba(255, 217, 138, ${0.55 * pulse})`);
-    glow.addColorStop(1, "rgba(255,217,138,0)");
-    g.fillStyle = glow;
-    g.fillRect(h.x - r, h.y - r, r * 2, r * 2);
-    for (let i = 0; i < 6; i++) {
-      const ph = (time * 0.6 + i * 0.31) % 1;
-      const sy = h.y - ph * pillarH;
-      const sx = h.x + Math.sin(time * 1.4 + i) * 14 * ph;
-      const a = (1 - ph) * 0.9;
-      g.fillStyle = `rgba(255, 235, 170, ${a})`;
-      g.fillRect(sx, sy, 2, 2);
-    }
-  }
-  if (near) {
-    const t = 1 - clamp(d / 240, 0, 1);
-    const r = 90 + t * 30;
-    const glow = g.createRadialGradient(h.x, h.y, 0, h.x, h.y, r);
-    glow.addColorStop(0, `rgba(255, 217, 138, ${0.35 * t})`);
+    glow.addColorStop(0, `rgba(255, 217, 138, ${0.22 * t * pulse})`);
     glow.addColorStop(1, "rgba(255,217,138,0)");
     g.fillStyle = glow;
     g.fillRect(h.x - r, h.y - r, r * 2, r * 2);

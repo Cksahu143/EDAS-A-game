@@ -239,7 +239,11 @@ function getSpots(ctx: Ctx) {
 // --- draw ----------------------------------------------------------------
 export function drawEntities(ctx: Ctx, g: CanvasRenderingContext2D) {
   const all: Array<{ y: number; draw: () => void }> = [];
-  if (ctx.scene === "surface") {
+  // NPCs are hidden once the discovery sequence begins (cutscene/falling
+  // state) — the whole point of the hatch is that no one sees this
+  // happen. Previously classmates kept wandering and rendering nearby
+  // during the dangle/fall, which read as "people watching her fall in."
+  if (ctx.scene === "surface" && ctx.state === "explore") {
     for (const n of ctx.npcs) all.push({ y: n.y, draw: () => drawNpc(ctx, g, n) });
   }
   all.push({ y: ctx.scene === "surface" ? ctx.player.y + 10000 : ctx.player.y, draw: () => drawPlayer(ctx, g) });
@@ -721,20 +725,53 @@ function drawDangle(g: CanvasRenderingContext2D, p: Player, time: number) {
   const slipT = (Math.sin(time * 2.2) + 1) * 0.5;
   const ss = squashStretch(time, { amp: 0.03, speed: 3 });
   const o = p.outfit;
+
+  // Hole geometry must match drawHatchPit's dark ellipse exactly
+  // (center p.y, rx 46, ry 34) — everything below the waist gets
+  // clipped to this shape so her legs actually vanish into the
+  // darkness of the pit instead of rendering past its edge onto the
+  // grass, which is what made this read as "lying over an open hole"
+  // rather than "dangling inside one."
+  const holeCx = p.x, holeCy = p.y;
+  const holeRx = 46, holeRy = 34;
+
+  // Anchor the whole body much closer to the rim than before — hands
+  // grip right at the hole's top edge, torso sits at the rim line,
+  // legs hang down into the hole and get clipped there.
+  const bodyY = p.y - 6 + struggle * 0.4;
+
+  // --- lower body (legs) — clipped to the hole, so it's physically
+  // impossible for them to render outside the opening ---
   g.save();
-  const bodyDropY = 22 + slipT * 2 + struggle * 0.6;
-  g.translate(p.x, p.y + bodyDropY);
-  g.scale(PLAYER_DRAW_SCALE * ss.sx, PLAYER_DRAW_SCALE * ss.sy);
+  g.beginPath();
+  g.ellipse(holeCx, holeCy, holeRx, holeRy, 0, 0, Math.PI * 2);
+  g.clip();
 
   g.save();
-  g.globalAlpha = 0.82;
+  g.translate(p.x, bodyY);
+  g.scale(PLAYER_DRAW_SCALE * ss.sx, PLAYER_DRAW_SCALE * ss.sy);
+  g.globalAlpha = 0.9;
   g.fillStyle = o.pants;
-  g.save(); g.translate(-3, 6); g.rotate(kick * 0.4); g.fillRect(-2, 0, 4, 18); g.restore();
-  g.save(); g.translate(3, 6); g.rotate(-kick * 0.4); g.fillRect(-2, 0, 4, 18); g.restore();
+  g.save(); g.translate(-3, 6); g.rotate(kick * 0.4); g.fillRect(-2, 0, 4, 20); g.restore();
+  g.save(); g.translate(3, 6); g.rotate(-kick * 0.4); g.fillRect(-2, 0, 4, 20); g.restore();
   g.fillStyle = "#1a1010";
-  g.save(); g.translate(-3 + Math.sin(kick) * 4, 22 + Math.abs(kick) * 2); g.fillRect(-3, 0, 5, 3); g.restore();
-  g.save(); g.translate(3 - Math.sin(kick) * 4, 22 + Math.abs(kick) * 2); g.fillRect(-2, 0, 5, 3); g.restore();
+  g.save(); g.translate(-3 + Math.sin(kick) * 4, 24 + Math.abs(kick) * 2); g.fillRect(-3, 0, 5, 3); g.restore();
+  g.save(); g.translate(3 - Math.sin(kick) * 4, 24 + Math.abs(kick) * 2); g.fillRect(-2, 0, 5, 3); g.restore();
+  // fade legs to black toward the bottom so they read as sinking into
+  // shadow rather than cutting off with a hard edge
+  const fade = g.createLinearGradient(0, 6, 0, 34);
+  fade.addColorStop(0, "rgba(0,0,0,0)");
+  fade.addColorStop(1, "rgba(0,0,0,0.9)");
+  g.fillStyle = fade;
+  g.fillRect(-8, 6, 16, 30);
   g.restore();
+  g.restore(); // remove clip
+
+  // --- upper body (torso/arms/head) — NOT clipped, since she's still
+  // gripping the rim above/at ground level ---
+  g.save();
+  g.translate(p.x, bodyY);
+  g.scale(PLAYER_DRAW_SCALE * ss.sx, PLAYER_DRAW_SCALE * ss.sy);
 
   g.fillStyle = o.shirt;
   g.beginPath();
@@ -773,11 +810,14 @@ function drawDangle(g: CanvasRenderingContext2D, p: Player, time: number) {
   g.fillStyle = "rgba(255,120,110,0.6)";
   g.fillRect(-4, hy + 2, 2, 1); g.fillRect(3, hy + 2, 2, 1);
 
-  const rimY = -26 + slipT * 1.2;
+  // Arms reach up to grip the rim's top-back edge — positioned to
+  // actually land on the rim (world y ≈ holeCy - holeRy), not floating
+  // deep inside the hole's darkness.
+  const rimLocalY = (-holeRy - (bodyY - holeCy)) / (PLAYER_DRAW_SCALE * ss.sy) + slipT * 0.6;
   const shoulderL = { x: -6, y: -4 };
   const shoulderR = { x: 6, y: -4 };
-  const gripL = { x: -14, y: rimY };
-  const gripR = { x: 14, y: rimY };
+  const gripL = { x: -13, y: rimLocalY };
+  const gripR = { x: 13, y: rimLocalY };
   g.strokeStyle = o.skin;
   g.lineWidth = 3.2;
   g.lineCap = "round";

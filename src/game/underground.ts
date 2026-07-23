@@ -434,7 +434,7 @@ export function drawUnderground(ctx: Ctx, g: CanvasRenderingContext2D, layer: "s
     }
 
     // CoCo — a small firefly companion with warm halo
-    drawCoCo(g, u.coco.x, u.coco.y, t);
+    drawCoCo(g, u.coco.x, u.coco.y, t, !!ctx.fragments?.includes("garden"));
 
     // Sprocket — Fen Sollene's decaying creation, pacing near the shaft
     drawSprocket(g, u.sprocket, t);
@@ -667,12 +667,17 @@ const COCO_HAIR = "#f0d27a";
 const COCO_BLOUSE = "#fbeee0";
 const COCO_ACCENT = "#f0a8bb"; // dusty pink
 
-function drawCoCo(g: CanvasRenderingContext2D, x: number, y: number, t: number) {
+function drawCoCo(g: CanvasRenderingContext2D, x: number, y: number, t: number, isExplorer: boolean = false) {
   const pulse = 0.7 + Math.sin(t * 3) * 0.25;
   const bob = Math.sin(t * 1.6) * 2;
 
-  // soft ambient glow — white/cream, not gold (Novice hasn't earned gold yet)
-  g.fillStyle = `rgba(255,248,235,${0.14 * pulse})`;
+  // Novice: soft white/cream ambient. Explorer (first Title change,
+  // earned once the Garden fragment is collected): the glow warms to
+  // a gentle gold — the bible's rule that gold trim is earned starting
+  // at Explorer, not present at Novice.
+  g.fillStyle = isExplorer
+    ? `rgba(255,225,150,${0.16 * pulse})`
+    : `rgba(255,248,235,${0.14 * pulse})`;
   g.beginPath(); g.arc(x, y - bob, 22, 0, Math.PI * 2); g.fill();
 
   g.save();
@@ -698,9 +703,16 @@ function drawCoCo(g: CanvasRenderingContext2D, x: number, y: number, t: number) 
   g.quadraticCurveTo(7, -2, 6, 9);
   g.quadraticCurveTo(0, 11, -6, 9);
   g.closePath(); g.fill();
-  // a single small dusty-pink collar accent — the only trim she has
+  // Novice: a single small dusty-pink collar accent — the only trim
+  // she has. Explorer: the same collar, now edged in a thin gold line —
+  // her first Title change, per the bible.
   g.fillStyle = COCO_ACCENT;
   g.beginPath(); g.ellipse(0, -6.5, 3, 1.3, 0, 0, Math.PI * 2); g.fill();
+  if (isExplorer) {
+    g.strokeStyle = "rgba(230,190,110,0.9)";
+    g.lineWidth = 0.6;
+    g.beginPath(); g.ellipse(0, -6.5, 3, 1.3, 0, 0, Math.PI * 2); g.stroke();
+  }
 
   // arms
   g.strokeStyle = COCO_BLOUSE; g.lineWidth = 3; g.lineCap = "round";

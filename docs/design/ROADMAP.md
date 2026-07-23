@@ -123,6 +123,39 @@ attentiveness tracker.
   single biggest lever for making each region feel like a distinct
   place rather than the same room recolored.
 
+- **Dangle pose — fixed a real bug, not just a look tweak.** The math
+  had her legs rendering ~35-72px below the hatch center in world
+  space, but the hole's dark ellipse only extends to 34px — meaning
+  almost the entire leg length was drawn on the grass past the hole,
+  which is exactly why it read as "lying over an open hole" instead of
+  "hanging inside one." Rewrote with a canvas clip matching the hole's
+  exact ellipse so legs physically cannot render outside the opening,
+  re-anchored the whole body much closer to the rim, and added a
+  fade-to-black gradient on the clipped legs so they sink into shadow
+  rather than cutting off with a hard edge.
+- **The hatch is now actually hidden.** It previously had a 620px-tall
+  glowing light pillar plus a wide ambient halo, both always visible
+  whenever undiscovered — meaning it was findable from almost anywhere
+  on the map, which directly contradicted the story calling it a secret.
+  Removed the beacon entirely; only a very subtle glint remains, and
+  only within ~90px. Also removed a literal 26-flower guided trail that
+  led in a curved path from spawn straight to the hatch (replaced with
+  ordinary randomly-scattered flowers near that corner) — it was
+  functionally an arrow pointing at the secret.
+- **NPCs no longer witness the discovery.** They previously kept
+  wandering and rendering nearby throughout the entire kneel/dangle/fall
+  sequence, which read as classmates watching her fall into a hole and
+  not reacting. NPCs are now hidden the moment the sequence begins
+  (state leaves "explore") and only return once the story resumes normal
+  exploration.
+- **CoCo's first Title change (Novice → Explorer)** — tied to the
+  existing `ctx.fragments` tracker (already set when the Garden puzzle
+  is solved, no new state needed). Her ambient glow warms from
+  white/cream to a gentle gold, and her collar gains a thin gold trim
+  line — her first visible progression per the bible's Title system.
+  The other 6+ stages are not implemented; this establishes the pattern
+  for future ones to hook into other story beats the same way.
+
 ## Suggested next slice
 
 Given the gap in scope, the next-highest-value additions (in rough
